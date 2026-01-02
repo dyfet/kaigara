@@ -1,0 +1,1 @@
+-Ilib --suppress="*" -UDEBUG --suppress=preprocessorErrorDirective --suppress=unassignedVariable --suppress=unusedStructMember --inline-suppr --enable=style,performance,warning,portability
