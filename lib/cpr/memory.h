@@ -34,6 +34,7 @@ void *cpr_ref(memshare_t ptr);
 unsigned cpr_count(memshare_t ptr);
 memshare_t cpr_retain(memshare_t ptr);
 memshare_t cpr_release(memshare_t ptr);
+void free_ignore(void *obj);
 
 #ifndef _WIN32
 static inline FILE *cpr_memread(const void *from, size_t size) {

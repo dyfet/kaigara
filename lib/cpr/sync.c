@@ -88,7 +88,6 @@ long cpr_elapsed(const deadline_t *deadline) {
 
 long cpr_expires(const deadline_t *deadline, struct timeval *tv) {
     struct timespec current, delta;
-
     if (tv) {
         tv->tv_sec = 0;
         tv->tv_usec = 0;

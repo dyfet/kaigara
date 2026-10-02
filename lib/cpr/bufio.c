@@ -38,8 +38,7 @@ void cpr_freebuf(bufio_t *r) {
         if (!fstat(r->fd, &ino) && S_ISSOCK(ino.st_mode))
             shutdown(r->fd, SHUT_RDWR);
 #endif
-        if (r->fd > 2)
-            close(r->fd);
+        if (r->fd > 2) close(r->fd);
     }
     free(r);
 }
@@ -68,11 +67,11 @@ bufio_t *cpr_makebuf(int fd, size_t bufsize) {
             return NULL;
         }
         tcgetattr(fd, &t);
-        t.c_lflag &= ~(ICANON | ECHO | ISIG);
-        t.c_iflag &= ~(IXON | ICRNL);
-        t.c_oflag &= ~(OPOST);
-        t.c_cc[VMIN] = 1;  // read returns after 1 byte
-        t.c_cc[VTIME] = 0; // no timeout
+        t.c_lflag &= ~(ICANON | ECHO | ISIG); // NOLINT
+        t.c_iflag &= ~(IXON | ICRNL);         // NOLINT
+        t.c_oflag &= ~(OPOST);                // NOLINT
+        t.c_cc[VMIN] = 1;                     // read returns after 1 byte
+        t.c_cc[VTIME] = 0;                    // no timeout
         if (tcsetattr(fd, TCSANOW, &t) < 0) {
             free(r);
             return NULL;
@@ -113,8 +112,8 @@ bool cpr_flushbuf(bufio_t *w) {
         goto writer;
     }
 #endif
-    result = write(w->fd, out, w->put); // FlawFinder: ignore
-writer:                                 // NOLINT
+    result = write(w->fd, out, w->put);
+writer: // NOLINT
     if ((size_t)result < w->put) {
         size_t remaining = w->put - (size_t)result;
         memmove(out, out + result, remaining);
@@ -159,7 +158,6 @@ bool cpr_fillbuf(bufio_t *r, size_t request) {
             r->end -= r->start;
             r->start = 0;
         }
-        // FlawFinder: read any extra data to complete request
         ssize_t n;
 #ifdef _WIN32
         if (r->socket) {
@@ -167,8 +165,8 @@ bool cpr_fillbuf(bufio_t *r, size_t request) {
             goto reader;
         }
 #endif
-        n = read(r->fd, &r->buf[r->end], r->bufsize - r->end); // FlawFinder: ignore
-    reader:                                                    // NOLINT
+        n = read(r->fd, &r->buf[r->end], r->bufsize - r->end);
+    reader: // NOLINT
         if (n > 0) {
             r->end += n;
             r->buf[r->end] = 0;
@@ -178,8 +176,9 @@ bool cpr_fillbuf(bufio_t *r, size_t request) {
             if (n == 0) return false; // always false if eof...
             return refill;            // for parser can have less than request
         }
-    } else
-        r->buf[r->end] = 0; // use null byte, even if full, overflow space
+    } else {
+        r->buf[r->end] = 0; // NOLINT use null byte, even if full, overflow space
+    }
     return true;
 }
 
@@ -241,8 +240,8 @@ int cpr_waitbuf(const bufio_t *r, int timeout_ms) {
     while (1) {
         int rv = poll(&pfd, 1, timeout_ms);
         if (rv > 0) {
-            if (pfd.revents & POLLIN) return 1; // ready to read
-            if (pfd.revents & (POLLERR | POLLHUP | POLLNVAL)) return -2;
+            if ((unsigned)pfd.revents & POLLIN) return 1; // ready to read
+            if ((unsigned)pfd.revents & (unsigned)(POLLERR | POLLHUP | POLLNVAL)) return -2;
             return -3; // unexpected state
         } else if (rv == 0) {
             return 0; // timeout
@@ -255,7 +254,7 @@ int cpr_waitbuf(const bufio_t *r, int timeout_ms) {
 }
 #endif
 
-bool cpr_fmtbuf(bufio_t *w, size_t estimated, const char *fmt, ...) {
+__attribute__((format(printf, 3, 4))) bool cpr_fmtbuf(bufio_t *w, size_t estimated, const char *fmt, ...) {
     if (!w || !fmt || !estimated || estimated > w->bufsize) return false;
     char *out = (char *)w + sizeof(bufio_t) + w->bufsize;
     if (w->put + estimated > w->bufsize) {
@@ -264,10 +263,35 @@ bool cpr_fmtbuf(bufio_t *w, size_t estimated, const char *fmt, ...) {
 
     va_list ap;
     va_start(ap, fmt);
-    int n = vsnprintf(&out[w->put], estimated, fmt, ap); // FlawFinder: checked
+    int n = vsnprintf(&out[w->put], estimated, fmt, ap);
     va_end(ap);
 
     if (n < 0 || (size_t)n >= estimated) return false;
     w->put += (size_t)n;
     return true;
+}
+
+__attribute__((format(printf, 2, 3))) bool cpr_printbuf(bufio_t *w, const char *fmt, ...) {
+    if (!w || !fmt) return false;
+    char *out = (char *)w + sizeof(bufio_t) + w->bufsize;
+    if (w->put && !cpr_flushbuf(w)) return false;
+    va_list ap;
+    va_start(ap, fmt);
+    int n = vsnprintf(&out[w->put], w->bufsize, fmt, ap);
+    va_end(ap);
+
+    if (n < 0 || (size_t)n > w->bufsize) return false;
+    w->put += (size_t)n;
+    return cpr_flushbuf(w);
+}
+
+__attribute__((format(scanf, 2, 3))) int cpr_scanbuf(bufio_t *r, const char *fmt, ...) {
+    if (!r || r->fd < 0) return EOF;
+    const char *lp = cpr_lgetbuf(r, NULL, NULL);
+    if (!lp) return EOF;
+    va_list args;
+    va_start(args, fmt);
+    int result = vsscanf(lp, fmt, args);
+    va_end(args);
+    return result;
 }

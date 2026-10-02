@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
+#include <local/scan.h>
 #include <cpr/system.h>
 #include <minicrypt/random.h>
-#include <local/scan.h>
 #include <getopt.h>
 #include <stdlib.h>
 
@@ -14,7 +14,7 @@ static uint64_t opt_min, opt_max;
 
 int main(int argc, char *argv[]) {
     int opt;
-    while ((opt = getopt(argc, argv, "r:c:l")) != -1) { // FlawFinder: ignore
+    while ((opt = getopt(argc, argv, "r:c:l")) != -1) {
         switch (opt) {
         case 'l':
             opt_lines = true;
@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
             break;
         default:
         usage:
-            cpr_crit(-1, "Usage: rand [options] min max");
+            cpr_crit(-1, "usage: rand [options] min max");
         }
     }
     if (optind < argc)
@@ -40,21 +40,19 @@ int main(int argc, char *argv[]) {
     else
         goto usage;
 
-    if (optind < argc)
-        goto usage;
-
+    if (optind < argc) goto usage;
     if (opt_max <= opt_min) {
-        fprintf(stderr, "error: max <= min or invalid\n");
+        fprintf(stderr, "%s: invalid min or max: %d<%d\n", argv[0], (int)opt_min, (int)opt_max);
         goto usage;
     }
 
     if (!opt_count) {
-        fprintf(stderr, "error: count must be 1-1000\n");
+        fprintf(stderr, "%s: count invalid: %d\n", argv[0], opt_count);
         goto usage;
     }
 
     if (!opt_rounds) {
-        fprintf(stderr, "Error: rounds must be 1-1000\n");
+        fprintf(stderr, "%s: rounds invalid: %d\n", argv[0], opt_rounds);
         goto usage;
     }
 
@@ -73,8 +71,7 @@ int main(int argc, char *argv[]) {
             space = " ";
         }
     }
-    if (!opt_lines)
-        printf("\n");
+    if (!opt_lines) printf("\n");
     mc_random_free(&ctx);
     return 0;
 }

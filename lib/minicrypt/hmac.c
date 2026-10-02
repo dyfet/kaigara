@@ -28,8 +28,8 @@ void mc_hmac_sha1(const uint8_t *key, size_t keysize, const uint8_t *data, size_
     uint8_t opad[MC_SHA1_BLOCK_SIZE];
     sha1_normalize_key(key, keysize, keyblock);
     for (size_t i = 0; i < MC_SHA1_BLOCK_SIZE; ++i) {
-        ipad[i] = keyblock[i] ^ 0x36;
-        opad[i] = keyblock[i] ^ 0x5c;
+        ipad[i] = keyblock[i] ^ 0x36U;
+        opad[i] = keyblock[i] ^ 0x5cU;
     }
 
     mc_sha1_ctx inner;
@@ -65,8 +65,8 @@ void mc_hmac_sha256(const uint8_t *key, size_t keysize, const uint8_t *data, siz
     uint8_t opad[MC_SHA256_BLOCK_SIZE];
     sha256_normalize_key(key, keysize, keyblock);
     for (size_t i = 0; i < MC_SHA256_BLOCK_SIZE; ++i) {
-        ipad[i] = keyblock[i] ^ 0x36;
-        opad[i] = keyblock[i] ^ 0x5c;
+        ipad[i] = keyblock[i] ^ 0x36U;
+        opad[i] = keyblock[i] ^ 0x5cU;
     }
 
     mc_sha256_ctx inner;
@@ -90,10 +90,10 @@ void mc_hmac256_pbkdf2(const uint8_t *pass, size_t len, const uint8_t *salt, uin
     uint8_t salt_block[SALT_SIZE + 4];
     for (size_t i = 1; i <= block_count; ++i) {
         mc_memcpy(salt_block, salt, SALT_SIZE);
-        salt_block[SALT_SIZE + 0] = (i >> 24) & 0xff;
-        salt_block[SALT_SIZE + 1] = (i >> 16) & 0xff;
-        salt_block[SALT_SIZE + 2] = (i >> 8) & 0xff;
-        salt_block[SALT_SIZE + 3] = i & 0xff;
+        salt_block[SALT_SIZE + 0] = (i >> 24U) & 0xffU;
+        salt_block[SALT_SIZE + 1] = (i >> 16U) & 0xffU;
+        salt_block[SALT_SIZE + 2] = (i >> 8U) & 0xffU;
+        salt_block[SALT_SIZE + 3] = i & 0xffU;
         mc_hmac_sha256(pass, len, salt_block, SALT_SIZE + 4, U);
         mc_memcpy(T, U, 32);
         for (uint32_t j = 1; j < rounds; ++j) {

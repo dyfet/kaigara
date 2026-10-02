@@ -2,7 +2,7 @@
 // Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 #ifndef MINICRYPT_HELPER_H
-#define MINICRYPT_YELPER_H
+#define MINICRYPT_HELPER_H
 
 #ifdef __cplusplus
 extern "C" {

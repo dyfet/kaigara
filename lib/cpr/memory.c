@@ -9,10 +9,10 @@ size_t cpr_hexload(uint8_t *out, const char *str, size_t size) {
     if (!out || !size || !str) return 0;
     size_t count = 0;
     while (count < size && *str) {
-        const char *cp1 = strchr(hex, tolower(str[0]));
-        const char *cp2 = strchr(hex, tolower(str[1]));
+        const uint8_t *cp1 = (const uint8_t *)strchr(hex, (char)tolower(str[0]));
+        const uint8_t *cp2 = (const uint8_t *)strchr(hex, (char)tolower(str[1]));
         if (!cp1 || !cp2) break;
-        out[count++] = ((uint8_t)(cp1 - hex) << 4) | (uint8_t)(cp2 - hex);
+        out[count++] = ((uint8_t)(cp1 - (const uint8_t *)hex) << 4U) | (uint8_t)(cp2 - (const uint8_t *)hex); // NOLINT
         str += 2;
     }
     return count;
@@ -24,8 +24,8 @@ char *cpr_hexdup(const uint8_t *bin, size_t size) {
     if (!out) return NULL;
     char *put = out;
     while (size--) {
-        *(put++) = hex[*bin >> 4];
-        *(put++) = hex[*bin & 0x0f];
+        *(put++) = hex[*bin >> 4U];
+        *(put++) = hex[*bin & 0x0fU];
         ++bin;
     }
     *put = 0;
@@ -33,15 +33,13 @@ char *cpr_hexdup(const uint8_t *bin, size_t size) {
 }
 
 void *cpr_new(void **ptr, size_t size) {
-    if (*ptr)
-        free(*ptr);
+    if (*ptr) free(*ptr);
     *ptr = malloc(size);
     return *ptr;
 }
 
 void cpr_free(void **ptr) {
-    if (!*ptr)
-        return;
+    if (!*ptr) return;
     free(*ptr);
     *ptr = NULL;
 }
@@ -49,7 +47,7 @@ void cpr_free(void **ptr) {
 bool cpr_memcpy(void *dst, size_t dst_size, const void *src, size_t src_size) {
     if (!dst || !src) return false;
     if (src_size > dst_size) return false;
-    memcpy(dst, src, src_size); // FlawFinder: ignore
+    memcpy(dst, src, src_size);
     return true;
 }
 
@@ -88,4 +86,8 @@ memshare_t cpr_release(memshare_t ptr) {
         return NULL;
     }
     return ptr;
+}
+
+// cppcheck-suppress constParameterPointer
+void free_ignore(void *obj) {
 }

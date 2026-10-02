@@ -5,9 +5,7 @@
 
 mempager_t pager_create(size_t pagesize, unsigned max) {
     mempager_t pager = (mempager_t)malloc(sizeof(struct _mempager));
-    if (!pager)
-        return NULL;
-
+    if (!pager) return NULL;
     pager->limit = max;
     pager->size = pagesize;
     pager->count = 0;
@@ -16,9 +14,7 @@ mempager_t pager_create(size_t pagesize, unsigned max) {
 }
 
 void *pager_data(mempage_t page) {
-    if (!page)
-        return NULL;
-
+    if (!page) return NULL;
     return ((uint8_t *)page) + page->used;
 }
 
@@ -42,9 +38,7 @@ void pager_reset(mempager_t pager) {
 }
 
 void pager_free(mempager_t pager) {
-    if (!pager)
-        return;
-
+    if (!pager) return;
     pager_reset(pager);
     free(pager);
 }
@@ -57,8 +51,7 @@ mempage_t pager_request(mempager_t pager) {
         return NULL;
     else {
         page = (mempage_t)malloc(pager->size);
-        if (!page)
-            return NULL;
+        if (!page) return NULL;
         ++pager->count;
     }
 
@@ -75,16 +68,12 @@ mempage_t pager_request(mempager_t pager) {
 }
 
 void *pager_alloc(mempager_t pager, size_t size) {
-    uint8_t *data;
     mempage_t page;
-
-    if (size + sizeof(struct _mempage) > pager->size)
-        return NULL;
-
+    if (size + sizeof(struct _mempage) > pager->size) return NULL;
     page = pager->head;
     while (page) {
         if (page->used + size <= pager->size) {
-            data = ((uint8_t *)page) + page->used;
+            uint8_t *data = ((uint8_t *)page) + page->used;
             page->used += size;
             return data;
         }
@@ -92,9 +81,7 @@ void *pager_alloc(mempager_t pager, size_t size) {
     }
 
     page = pager_request(pager);
-    if (!page)
-        return NULL;
-
+    if (!page) return NULL;
     page->used += size;
     return ((uint8_t *)page) + sizeof(struct _mempage);
 }

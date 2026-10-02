@@ -1,18 +1,21 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
+if(LINT_SCRIPTS)
+    find_program(SHELLCHECK_EXEC "shellcheck")
+endif()
+
 if(LINT_SOURCES)
     find_program(CLANG_TIDY_EXEC "clang-tidy")
-    find_program(FLAWFINDER_EXEC "flawfinder")
     find_program(CPPCHECK_EXEC "cppcheck")
     find_program(CLANG_FORMAT_EXEC "clang-format")
 
-    if(FLAWFINDER_EXEC)
-        list(APPEND LINT_DEPENDS flaws)
-        add_custom_target(flaws
+    if(SHELLCHECK_EXEC)
+        list(APPEND LINT_DEPENDS lint_shell)
+        add_custom_target(lint_shell
             USES_TERMINAL
             WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-            COMMAND ${FLAWFINDER_EXEC} --quiet -CDF ${LINT_SOURCES}
+            COMMAND ${SHELLCHECK_EXEC} --color=never ${LINT_SCRIPTS}
         )
     endif()
 

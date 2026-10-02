@@ -40,12 +40,23 @@ int cpr_setaddr(sockaddr_t *store, const char *addr, uint16_t port) {
     return store->ss_family;
 }
 
+uint16_t cpr_getport(sockaddr_t *store) {
+    if (store->ss_family == AF_INET) {
+        struct sockaddr_in *a4 = (struct sockaddr_in *)store;
+        return ntohs(a4->sin_port);
+    }
+    if (store->ss_family == AF_INET6) {
+        struct sockaddr_in6 *a6 = (struct sockaddr_in6 *)store;
+        return ntohs(a6->sin6_port);
+    }
+    return 0;
+}
+
 char *cpr_getaddr(sockaddr_t *store) {
     char buf[INET6_ADDRSTRLEN + 1];
     if (!store) return NULL;
     buf[0] = 0;
-    if (store->ss_family == AF_UNSPEC)
-        return cpr_strdup("*", 2);
+    if (store->ss_family == AF_UNSPEC) return cpr_strdup("*", 2);
 
     const char *out = NULL;
     if (store->ss_family == AF_INET) {
@@ -84,11 +95,11 @@ bool cpr_getbind(const char *to, int family, sockaddr_t *store, uint16_t port) {
     PIP_ADAPTER_ADDRESSES list = (PIP_ADAPTER_ADDRESSES)(malloc(bufsize));
     if (!list) return false;
 
-    WORD result = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX, NULL, list, &bufsize);
+    WORD result = GetAdaptersAddresses(family, GAA_FLAG_INCLUDE_PREFIX, NULL, list, &bufsize);
     if (result == ERROR_BUFFER_OVERFLOW) {
         free(list);
         list = (PIP_ADAPTER_ADDRESSES)(malloc(bufsize));
-        result = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX, NULL, list, &bufsize);
+        result = GetAdaptersAddresses(family, GAA_FLAG_INCLUDE_PREFIX, NULL, list, &bufsize);
     };
 
     if (result != NO_ERROR) {
@@ -99,11 +110,14 @@ bool cpr_getbind(const char *to, int family, sockaddr_t *store, uint16_t port) {
     const struct sockaddr *target = NULL;
     PIP_ADAPTER_ADDRESSES entry;
     bool found = false;
+    char utf8[512];
     for (entry = list; !found && entry != NULL; entry = entry->Next) {
-        if (!entry->AdapterName || !eq(to, entry->AdapterName)) continue;
+        if (!entry->FriendlyName) continue;
+        WideCharToMultiByte(CP_UTF8, 0, entry->FriendlyName, -1, utf8, sizeof utf8, NULL, NULL);
+        if (!match(utf8, to) && !match(to, entry->AdapterName)) continue;
         PIP_ADAPTER_UNICAST_ADDRESS unicast;
         for (unicast = entry->FirstUnicastAddress; !found && unicast != NULL; unicast = unicast->Next) {
-            if (unicast->Address.lpSockaddr && unicast->Address.lpSockaddr->sa_family == family) {
+            if (unicast->Address.lpSockaddr) {
                 target = unicast->Address.lpSockaddr;
                 found = true;
                 break;
@@ -149,7 +163,6 @@ bool cpr_gethost(const char *host, const char *service, int family, int type, so
 
     const int rc = getaddrinfo(host, service, &hints, &res);
     if (rc != 0 || !res) return false;
-
     cpr_memcpy(store, sizeof(sockaddr_t), res->ai_addr, res->ai_addrlen);
     freeaddrinfo(res);
     return true;

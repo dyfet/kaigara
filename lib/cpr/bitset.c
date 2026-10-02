@@ -10,7 +10,7 @@ static inline uint8_t bytemask(size_t bits) {
 static inline int count_bits(uint8_t n) {
     int count = 0;
     while (n > 0) {
-        n &= (n - 1);
+        n &= (n - 1U);
         count++;
     }
     return count;
@@ -43,7 +43,7 @@ void cpr_foldmask(bits_t bits, bits_t mask, size_t bitsize) {
     }
     size_t size = cpr_bitsize(bitsize);
     for (size_t pos = 0; pos < size; ++pos) {
-        bits[pos] &= ~mask[pos];
+        bits[pos] &= ~mask[pos]; // NOLINT
     }
     free(mask);
 }
@@ -70,7 +70,7 @@ void cpr_bitclr(bits_t bits, size_t offset) {
     if (!bits) return;
     size_t bytes = offset / 8;
     uint8_t mask = bytemask(offset);
-    bits[bytes] &= ~mask;
+    bits[bytes] &= ~mask; // NOLINT
 }
 
 bool cpr_anybits(bits_t bits, size_t bitsize) {

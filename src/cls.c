@@ -1,29 +1,27 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
+#include <local/con.h>
 #include <cpr/system.h>
-#include <siot/console.h>
 #include <getopt.h>
 #include <stdlib.h>
 
 int main(int argc, char *argv[]) {
-    bool clear = true;
+    bool opt_clear = true;
     int opt;
-    while ((opt = getopt(argc, argv, "r")) != -1) { // FlawFinder: ignore
+    while ((opt = getopt(argc, argv, "r")) != -1) {
         switch (opt) {
         case 'r':
-            clear = false;
+            opt_clear = false;
             break;
         default:
         usage:
-            cpr_crit(-1, "Usage: cls [-r]");
+            cpr_crit(-1, "usage: cls [-r]");
         }
     }
-    if (optind != argc)
-        goto usage;
-
-    if (clear) sio_cls();
-    sio_reset();
-    sio_wrap(true);
+    if (optind != argc) goto usage;
+    if (opt_clear) con_cls();
+    con_reset();
+    con_wrap(true);
     return 0;
 }

@@ -27,7 +27,7 @@ typedef union {
 #define MULTICAST_IPV4_DEFAULT_GROUP "239.0.0.1"
 #define MULTICAST_IPV6_DEFAULT_GROUP "FF35::1234"
 
-extern multicast_t if_multicase;
+extern multicast_t if_multicast;
 
 int make_multicast(const char *mcast, int family, uint16_t port);
 int join_multicast(int so, const struct sockaddr *member);

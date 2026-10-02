@@ -33,16 +33,17 @@ bufio_t *cpr_makebuf(int fd, size_t bufsize);
 const char *cpr_lgetbuf(bufio_t *r, size_t *outlen, const char *delim);
 const void *cpr_xgetbuf(bufio_t *r, size_t request);
 const char cpr_cgetbuf(bufio_t *r);
-bool clr_resetbuf(bufio_t *r, size_t consume);
+bool cpr_resetbuf(bufio_t *r, size_t consume);
 bool cpr_fillbuf(bufio_t *r, size_t request);
 bool cpr_flushbuf(bufio_t *w);
 bool cpr_cputbuf(bufio_t *w, char ch);
 bool cpr_xputbuf(bufio_t *w, const void *data, size_t request);
 bool cpr_sputbuf(bufio_t *w, const char *text);
-bool cpr_fmtbuf(bufio_t *w, size_t estimated, const char *fmt, ...);
 int cpr_waitbuf(const bufio_t *r, int timeout_ms);
 void cpr_freebuf(bufio_t *r);
-
+__attribute__((format(printf, 3, 4))) bool cpr_fmtbuf(bufio_t *w, size_t estimated, const char *fmt, ...);
+__attribute__((format(printf, 2, 3))) bool cpr_printbuf(bufio_t *w, const char *fmt, ...);
+__attribute__((format(scanf, 2, 3))) int cpr_scanbuf(bufio_t *r, const char *fmt, ...);
 #ifdef __cplusplus
 }
 #endif

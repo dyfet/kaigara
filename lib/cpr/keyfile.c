@@ -9,16 +9,14 @@ keysection_t *append_keysections(keysection_t *root, keysection_t *into) {
     while (prior && prior->next) {
         prior = prior->next;
     }
-    if (prior)
-        prior->next = root;
+    if (prior) prior->next = root;
     return into;
 }
 
-const char *get_keyvalue(keysection_t *section, const char *id) {
-    keydata_t *key = section->keys;
+const char *get_keyvalue(const keysection_t *section, const char *id) {
+    const keydata_t *key = section->keys;
     while (key) {
-        if (eq(key->id, id))
-            return key->value;
+        if (eq(key->id, id)) return key->value;
         key = key->next;
     }
     return NULL;
@@ -27,10 +25,8 @@ const char *get_keyvalue(keysection_t *section, const char *id) {
 keydata_t *make_keydata(keysection_t *group, const char *id, const char *value) {
     keydata_t *key = malloc(sizeof(keydata_t));
     if (!key) return NULL;
-
     key->id = cpr_lower(id, 32);
     key->value = strdup(value);
-    ;
     key->next = group->keys;
     group->keys = key;
     return key;
@@ -38,11 +34,8 @@ keydata_t *make_keydata(keysection_t *group, const char *id, const char *value) 
 
 keysection_t *make_keysection(const char *id, keysection_t *prior) {
     keysection_t *section = malloc(sizeof(keysection_t));
-    if (prior)
-        prior->next = section;
-    if (!section)
-        return NULL;
-
+    if (prior) prior->next = section;
+    if (!section) return NULL;
     section->next = NULL;
     section->keys = NULL;
     section->id = cpr_upper(id, 32);
@@ -57,13 +50,10 @@ keysection_t *find_keysection(keysection_t *root, const char *id) {
 }
 
 keysection_t *load_keyfile(const char *path) {
-    // FlawFinder: ignore
     FILE *fp = fopen(path, "r");
     char *lp;
     char linebuf[96];
-
-    if (!fp)
-        return NULL;
+    if (!fp) return NULL;
 
     keysection_t *root = make_keysection("*", NULL);
     keysection_t *current = root;
@@ -101,14 +91,12 @@ keysection_t *load_keyfile(const char *path) {
                 --kw;
             if (kw == lp) continue;
             *(++kw) = 0;
-            if (*body && isspace(*body))
-                ++body;
+            if (*body && isspace(*body)) ++body;
             kw = lp;
             char *ep = body + cpr_strlen(body, sizeof(linebuf)) - 1;
             if ((*body == '\'' || *body == '\"') && (*ep == *body)) {
                 *ep = 0;
-                if (*body)
-                    ++body;
+                if (*body) ++body;
             }
             make_keydata(current, kw, body);
         }
@@ -116,24 +104,6 @@ keysection_t *load_keyfile(const char *path) {
 
     fclose(fp); // NOLINT
     return root;
-}
-
-bool save_keyfile(const char *path, keysection_t *root) {
-    if (!path || !root) return false;
-    remove(path);
-    FILE *fp = fopen(path, "w"); // FlawFinder: ignore
-    if (!fp) return false;
-    for (keysection_t *section = root; section != NULL; section = section->next) {
-        fprintf(fp, "[%s]\n", section->id);
-        for (keydata_t *key = section->keys; key != NULL; key = key->next) {
-            if (strchr(key->value, '\'') != NULL)
-                fprintf(fp, "%s=\"%s\"\n", key->id, key->value);
-            else
-                fprintf(fp, "%s='%s'\n", key->id, key->value);
-        }
-    }
-    fclose(fp);
-    return true;
 }
 
 void free_keyfile(keysection_t *root) {

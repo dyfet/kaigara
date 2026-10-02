@@ -14,9 +14,9 @@
 #define LOG_DAEMON 0
 #define LOG_EMERG 0
 #define LOG_CRIT 0
-#define LOG_INFO 1
-#define LOG_WARNING 2
-#define LOG_NOTICE 3
+#define LOG_WARNING 1
+#define LOG_NOTICE 2
+#define LOG_INFO 3
 #define LOG_ERR 0
 #define LOG_DEBUG 4
 #define LOG_NDELAY 0
@@ -25,10 +25,25 @@
 #define LOG_PID 0
 #endif
 
+enum {
+    CPR_ERROR = 0,
+    CPR_WARN = 1,
+    CPR_NOTICE = 2,
+    CPR_INFO = 3,
+    CPR_DEBUG = 4
+};
+
+typedef void (*cpr_timer_t)(void);
+
 bool cpr_service();
 __attribute__((noreturn)) __attribute__((format(printf, 2, 3))) void cpr_sysexit(int exit_code, const char *fmt, ...);
 __attribute__((format(printf, 3, 4))) void cpr_logger(FILE *out, int level, const char *fmt, ...);
 __attribute__((format(printf, 2, 3))) void cpr_syslog(int priority, const char *fmt, ...);
 void cpr_openlog(const char *id, int facility, int flags);
 void cpr_closelog();
+void cpr_grpmask();
+void cpr_signals(int *exiting);
+void cpr_sigtimer(int seconds, cpr_timer_t proc);
+int cpr_sigwait();
+int cpr_sigwaitall();
 #endif

@@ -15,7 +15,7 @@ typedef enum {
     PIPELINE_DROP
 } pipeline_policy;
 
-typedef struct pipeline {
+typedef struct {
     pipeline_policy policy;
     mtx_t lock;
     cnd_t input, output;

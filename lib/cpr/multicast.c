@@ -23,11 +23,11 @@ int make_multicast(const char *mcast, int family, uint16_t port) {
         exit(-1);
     }
 
-    WORD result = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX, NULL, list, &bufsize);
+    WORD result = GetAdaptersAddresses(family, GAA_FLAG_INCLUDE_PREFIX, NULL, list, &bufsize);
     if (result == ERROR_BUFFER_OVERFLOW) {
         free(list);
         list = (PIP_ADAPTER_ADDRESSES)(malloc(bufsize));
-        result = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX, NULL, list, &bufsize);
+        result = GetAdaptersAddresses(family, GAA_FLAG_INCLUDE_PREFIX, NULL, list, &bufsize);
     };
 
     if (result != NO_ERROR) {
@@ -38,12 +38,15 @@ int make_multicast(const char *mcast, int family, uint16_t port) {
     const struct sockaddr_in *target = NULL;
     PIP_ADAPTER_ADDRESSES entry;
     bool found = false;
+    char utf8[512];
     for (entry = list; !found && entry != NULL; entry = entry->Next) {
-        if (!entry->AdapterName || !eq(mcast, entry->AdapterName)) continue;
+        if (!entry->FriendlyName) continue;
+        WideCharToMultiByte(CP_UTF8, 0, entry->FriendlyName, -1, utf8, sizeof utf8, NULL, NULL);
+        if (!match(utf8, mcast) && !match(mcast, entry->AdapterName)) continue;
         if (entry->Flags & IP_ADAPTER_NO_MULTICAST) continue;
         PIP_ADAPTER_UNICAST_ADDRESS unicast;
         for (unicast = entry->FirstUnicastAddress; !found && unicast != NULL; unicast = unicast->Next) {
-            if (unicast->Address.lpSockaddr && unicast->Address.lpSockaddr->sa_family == family) {
+            if (unicast->Address.lpSockaddr) {
                 if (family == AF_INET)
                     target = (struct sockaddr_in *)&unicast->Address.lpSockaddr;
                 found = true;
@@ -116,8 +119,7 @@ iface_t find_multicast(iface_t list, const char *iface, int family) {
         const struct sockaddr *addr = NULL;
         if (eq(list->ifa_name, iface) && (list->ifa_flags & IFF_MULTICAST))
             addr = list->ifa_addr;
-        if (addr && addr->sa_family == family)
-            return list;
+        if (addr && addr->sa_family == family) return list;
         list = list->ifa_next;
     }
     return NULL;
@@ -187,8 +189,7 @@ int make_multicast(const char *mcast, int family, uint16_t port) {
         }
     }
 
-    if (list)
-        freeifaddrs(list);
+    if (list) freeifaddrs(list);
     return sock;
 }
 #endif
@@ -196,7 +197,6 @@ int make_multicast(const char *mcast, int family, uint16_t port) {
 int join_multicast(int so, const struct sockaddr *member) {
     int res = 0;
     multicast_t multicast = if_multicast;
-
     if (so < 0) return EBADF;
     switch (member->sa_family) {
     case AF_INET:
@@ -218,7 +218,6 @@ int join_multicast(int so, const struct sockaddr *member) {
 int drop_multicast(int so, const struct sockaddr *member) {
     int res = 0;
     multicast_t multicast = if_multicast;
-
     if (so < 0) return EBADF;
     switch (member->sa_family) {
     case AF_INET:

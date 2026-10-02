@@ -16,7 +16,7 @@ int mc_random_init(mc_random_ctx *ctx) {
     }
     return 0;
 #else
-    ctx->fd = open("/dev/urandom", O_RDONLY); // FlawFinder: ignore
+    ctx->fd = open("/dev/urandom", O_RDONLY);
     return ctx->fd;
 #endif
 }
@@ -40,11 +40,11 @@ ssize_t mc_random_fill(mc_random_ctx *ctx, uint8_t *out, size_t size) {
     return CryptGenRandom(ctx->handle, size, out) ? size : 0;
 #else
     if (!ctx || ctx->fd < 0) return 0;
-    return read(ctx->fd, out, size); // FlawFinder: safe exit
+    return read(ctx->fd, out, size);
 #endif
 }
 
-#define MAX_UINT54 ((1ULL << 54) - 1)
+#define MAX_UINT54 ((1ULL << 54U) - 1ULL)
 
 static uint64_t get_random_uint54(mc_random_ctx *ctx) {
     uint64_t value = 0;

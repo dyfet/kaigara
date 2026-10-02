@@ -3,6 +3,13 @@
 
 #include "thread.h"
 
+bool cpr_thread(thrd_start_t func, void *data) {
+    thrd_t thread;
+    if (thrd_create(&thread, func, data) != thrd_success) return false;
+    thrd_detach(thread);
+    return true;
+}
+
 void cor_condlock_init(cpr_condlock_t *lock) {
     if (!lock) return;
     lock->pending = lock->waiting = lock->sharing = 0;
@@ -83,8 +90,7 @@ bool cpr_semaphore_acquire(cpr_semaphore_t *sem) {
         cnd_wait(&sem->cond, &sem->mtx);
         --sem->waits;
     }
-    if (!sem->shutdown)
-        ++sem->used;
+    if (!sem->shutdown) ++sem->used;
     bool result = !sem->shutdown;
     mtx_unlock(&sem->mtx);
     return result;
@@ -94,8 +100,7 @@ void cpr_semaphore_shutdown(cpr_semaphore_t *sem) {
     if (!sem) return;
     mtx_lock(&sem->mtx);
     sem->shutdown = true;
-    if (sem->waits)
-        cnd_broadcast(&sem->cond);
+    if (sem->waits) cnd_broadcast(&sem->cond);
     mtx_unlock(&sem->mtx);
 }
 
@@ -140,8 +145,7 @@ void cpr_waitgroup_done(cpr_waitgroup_t *wg) {
     if (!wg) return;
     mtx_lock(&wg->mtx);
     if (wg->count) --wg->count;
-    if (!wg->count)
-        cnd_broadcast(&wg->bcast);
+    if (!wg->count) cnd_broadcast(&wg->bcast);
     mtx_unlock(&wg->mtx);
 }
 

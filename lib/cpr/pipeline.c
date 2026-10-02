@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
-#include "pipeline.h"
-
 #include <stdlib.h>
+#include "pipeline.h"
 
 pipeline_t *make_pipeline(size_t size, pipeline_policy policy, cpr_free_t ff) {
     size_t alloc = sizeof(pipeline_t) + (size * sizeof(void *));
@@ -83,16 +82,17 @@ bool put_pipeline(pipeline_t *pl, void *ptr) {
             mtx_unlock(&pl->lock);
             return true;
         }
-        if (pl->policy == PIPELINE_WAIT)
+        if (pl->policy == PIPELINE_WAIT) {
             cnd_wait(&pl->input, &pl->lock);
-        else if (pl->policy == PIPELINE_DROP) {
+        } else if (pl->policy == PIPELINE_DROP) {
             void *drop = pl->buf[pl->head];
             if (drop)
                 pl->free(drop);
             pl->head = (pl->head + 1) % pl->size;
             --pl->count;
-        } else
+        } else {
             break;
+        }
     }
     mtx_unlock(&pl->lock);
     return false;

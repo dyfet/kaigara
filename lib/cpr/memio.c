@@ -65,7 +65,7 @@ bool cpr_fmtmem(memio_t *mem, size_t estimated, const char *fmt, ...) {
 
     va_list ap;
     va_start(ap, fmt);
-    int n = vsnprintf(&mem->data[mem->put], estimated, fmt, ap); // FlawFinder: checked
+    int n = vsnprintf(&mem->data[mem->put], estimated, fmt, ap);
     va_end(ap);
 
     if (n < 0 || (size_t)n >= estimated) return false;

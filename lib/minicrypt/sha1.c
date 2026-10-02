@@ -6,16 +6,16 @@
 #include <string.h>
 
 static uint32_t load_be32(const uint8_t *p) {
-    return ((uint32_t)p[0] << 24) |
-           ((uint32_t)p[1] << 16) |
-           ((uint32_t)p[2] << 8) |
+    return ((uint32_t)p[0] << 24U) |
+           ((uint32_t)p[1] << 16U) |
+           ((uint32_t)p[2] << 8U) |
            ((uint32_t)p[3]);
 }
 
 static void store_be32(uint8_t *p, uint32_t x) {
-    p[0] = (uint8_t)(x >> 24);
-    p[1] = (uint8_t)(x >> 16);
-    p[2] = (uint8_t)(x >> 8);
+    p[0] = (uint8_t)(x >> 24U);
+    p[1] = (uint8_t)(x >> 16U);
+    p[2] = (uint8_t)(x >> 8U);
     p[3] = (uint8_t)(x);
 }
 
@@ -114,7 +114,7 @@ int mc_sha1_final(mc_sha1_ctx *ctx, uint8_t *out) {
     pad[0] = 0x80;
     size_t rem = ctx->buffer_len;
     size_t pad_len = (rem < 56) ? (56 - rem) : (MC_SHA1_BLOCK_SIZE + 56 - rem);
-    for (int i = 0; i < 8; ++i) {
+    for (unsigned i = 0; i < 8; ++i) {
         pad[pad_len + i] = (uint8_t)(bit_len >> (56 - 8 * i));
     }
 
@@ -130,8 +130,7 @@ int mc_sha1_final(mc_sha1_ctx *ctx, uint8_t *out) {
 int mc_sha1_digest(const void *data, size_t size, uint8_t *out, const uint8_t *salt) {
     mc_sha1_ctx ctx;
     mc_sha1_init(&ctx);
-    if (salt)
-        mc_sha1_update(&ctx, salt, 16);
+    if (salt) mc_sha1_update(&ctx, salt, 16);
     mc_sha1_update(&ctx, data, size);
     return mc_sha1_final(&ctx, out);
 }

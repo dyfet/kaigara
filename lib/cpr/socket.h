@@ -22,6 +22,7 @@ typedef int socklen_t;
 #include <poll.h>
 #include <ifaddrs.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 typedef struct ifaddrs *iface_t;
 #endif
@@ -32,12 +33,16 @@ typedef struct ifaddrs *iface_t;
 // socket casting types
 
 socklen_t cpr_socklen(const struct sockaddr *addr);
+int cpr_sockerror();
+int cpr_sockpoll(struct pollfd *pfd, int count, int timeout);
 void cpr_sockclose(int so);
 int cpr_sockinit();
 int cpr_getch(int so);
 bool cpr_putch(int so, char code);
 ssize_t cpr_getline(int so, char *text, size_t max, bool echo);
 ssize_t cpr_putline(int so, const char *str, size_t max);
+void cpr_sockdown(int so);
+FILE *cpr_sockopen(int so, const char *mode);
 
 inline static struct sockaddr *to_sockaddr(struct sockaddr_storage *storage) {
     return (struct sockaddr *)storage;

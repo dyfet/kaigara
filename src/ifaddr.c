@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
     char *name = NULL;
     int family = TUNE_FAMILY_INET;
     int opt;
-    while ((opt = getopt(argc, argv, "46")) != -1) { // FlawFinder: ignore
+    while ((opt = getopt(argc, argv, "46")) != -1) {
         switch (opt) {
         case '4':
             family = AF_INET;
@@ -21,18 +21,19 @@ int main(int argc, char *argv[]) {
             break;
         default:
         usage:
-            cpr_crit(-1, "Usage: ifwaddr [-6] ifname");
+            cpr_crit(-1, "usage: ifwaddr [-6] ifname");
         }
     }
-    if (optind != (argc - 1))
-        goto usage;
+
+    cpr_sockinit();
+    if (optind != (argc - 1)) goto usage;
     name = argv[optind];
+
     sockaddr_t ifa;
     if (!cpr_getbind(name, family, &ifa, 0))
-        cpr_crit(-2, "%s: interface not found", name);
+        cpr_crit(-2, "fatal: interface not found: %s", name);
     const char *addr = cpr_getaddr(&ifa);
-    if (!addr)
-        cpr_crit(-3, "%s: not decodable", name);
+    if (!addr) cpr_crit(-3, "fatal: not decodab: %sle", name);
     printf("%s\n", addr);
     return 0;
 }

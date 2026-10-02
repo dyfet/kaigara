@@ -15,9 +15,7 @@ static void ring256_update(mc_ring256_ctx *ctx) {
     for (int path = 0; path < 256; ++path) {
         mc_ring256_item *item = ctx->index[path];
         while (item != NULL) {
-            if (!ctx->lowest) {
-                ctx->lowest = ctx->highest = item;
-            }
+            if (!ctx->lowest) ctx->lowest = ctx->highest = item;
             if (ctx->lowest->key > item->key)
                 ctx->lowest = item;
             if (ctx->highest->key < item->key)
@@ -64,7 +62,7 @@ bool mc_ring256_insert(mc_ring256_ctx *ctx, const char *host) {
         mc_memcpy(item->host, host, len + 1);
 
         // make sure we are not overwriting a collision
-        mc_ring256_item *dup = ctx->index[path];
+        const mc_ring256_item *dup = ctx->index[path];
         while (dup != NULL) {
             if (dup->key == key) break;
             dup = dup->next;
@@ -93,33 +91,26 @@ const char *mc_ring256_find(mc_ring256_ctx *ctx, const char *id) {
         return ctx->lowest->host;
 
     // find on current path if possible
-    mc_ring256_item *low = NULL, *item = ctx->index[path];
+    const mc_ring256_item *low = NULL, *item = ctx->index[path];
     while (item) {
         if (item->key >= key) {
-            if (!low || item->key < low->key)
-                low = item;
+            if (!low || item->key < low->key) low = item;
         }
         item = item->next;
     }
-    if (low != NULL)
-        return low->host;
-
-    // find next lowest slot...
+    if (low != NULL) return low->host;
     while (path + 1 < 256) {
         ++path;
-        if (ctx->index[path] != NULL)
-            break;
+        if (ctx->index[path] != NULL) break;
     }
 
     if (path > 255) return NULL;
     low = item = ctx->index[path];
     while (item) {
-        if (item->key < low->key)
-            low = item;
+        if (item->key < low->key) low = item;
         item = item->next;
     }
-    if (low != NULL)
-        return low->host;
+    if (low != NULL) return low->host;
     return NULL;
 }
 

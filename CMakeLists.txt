@@ -2,14 +2,16 @@
 # Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 cmake_minimum_required(VERSION 3.16.0)
-Project(kaigara VERSION 0.0.1 LANGUAGES C)
+Project(kaigara VERSION 0.3.0 LANGUAGES C)
 set(CMAKE_C_STANDARD 17)
 set(C_STANDARD_REQUIRED 17)
+set(CMAKE_PROJECT_SPDX_LICENSE "GPL-3.0-or-later" CACHE STRING "SPDX license identifier" FORCE)
 
+file(GLOB LINT_SCRIPTS RELATIVE ${PROJECT_SOURCE_DIR} scr/*.sh)
 file(
     GLOB LINT_SOURCES
     RELATIVE ${PROJECT_SOURCE_DIR}
-    src/*.h src/*.c lib/local/*.h lib/local/*.c)
+    src/*.h src/*.c lib/local/*.h lib/local/*.c test/*.c)
 
 include(cmake/custom.cmake OPTIONAL)
 include(cmake/project.cmake)
@@ -23,17 +25,19 @@ file(GLOB optional .git[a-z]* *.json *.in *.yml .clang* cmake/*)
 file(GLOB markdown *.md)
 
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/lib)
-
-add_subdirectory(lib)
+enable_testing()
 
 add_compile_definitions(
     PROJECT_VERSION="${PROJECT_VERSION}"
     TUNE_FAMILY_INET=${TUNE_FAMILY_INET}
 )
 
+add_subdirectory(lib)
 add_subdirectory(src)
+add_subdirectory(scr)
+add_subdirectory(test)
 
-if(WIN32)
+if(WIN32 OR MSYS)
     include(InstallRequiredSystemLibraries)
     set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
     set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md")

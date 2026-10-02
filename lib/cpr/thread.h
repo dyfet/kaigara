@@ -40,8 +40,7 @@ static inline void thrd_exit(int res) {
 
 static inline int thrd_join(thrd_t thr, int *res) {
     void *retval;
-    if (pthread_join(thr, &retval) != 0)
-        return thrd_error;
+    if (pthread_join(thr, &retval) != 0) return thrd_error;
     if (res) *res = (int)(intptr_t)retval;
     return thrd_success;
 }
@@ -115,6 +114,7 @@ typedef struct {
     unsigned count;
 } cpr_waitgroup_t;
 
+bool cpr_thread(thrd_start_t func, void *data);
 void cor_condlock_init(cpr_condlock_t *lock);
 void cor_condlock_free(cpr_condlock_t *lock);
 void cor_condlock_access(cpr_condlock_t *lock);

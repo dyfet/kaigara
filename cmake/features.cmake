@@ -6,8 +6,16 @@ include(CheckIncludeFileCXX)
 include(CheckFunctionExists)
 include(FindPkgConfig)
 
-if(MWSVC)
-        message(FATAL_ERROR "MSVC not supported; use MingW32")
+if(MSVC)
+    message(FATAL_ERROR "MSVC not supported; use MingW32")
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    include(CheckIncludeFile)
+    check_include_file("uuid/uuid.h" HAVE_UUID_UUID_H)
+    if(NOT HAVE_UUID_UUID_H)
+        message(FATAL_ERROR  "Missing uuid/uuid.h")
+    endif()
 endif()
 
 if(WIN32 OR MSYS)
@@ -23,25 +31,6 @@ endif()
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-
-if(NOT DEFINED CMAKE_TOOLCHAIN_FILE OR CMAKE_TOOLCHAIN_FILE STREQUAL "")
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(CPR libcpr>=0.9.0 QUIET)
-    pkg_check_modules(MINICRYPT minicrypt>=00.5.0 QUIET)
-    pkg_check_modules(SIOT libsiot>=0.1.0 QUIET)
-endif()
-
-if(NOT CPR_FOUND)
-    set(CPR_LIBRARIES import_cpr)
-endif()
-
-if(NOT MINICRYPT_FOUND)
-    set(MINICRYPT_LIBRARIES import_minicrypt)
-endif()
-
-if(NOT SIOT_FOUND)
-    set(SIOT_LIBRARIES import_siot)
-endif()
 
 add_compile_options(
     -ffunction-sections

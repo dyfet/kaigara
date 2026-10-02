@@ -29,7 +29,7 @@ static unsigned char PADDING[64] = {0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 #define H(x, y, z) ((x) ^ (y) ^ (z))
 #define I(x, y, z) ((y) ^ ((x) | (~(z))))
 
-#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
+#define ROTATE_LEFT(x, n) (((x) << (unsigned)(n)) | ((x) >> (unsigned)(32 - (n))))
 
 #define FF(a, b, c, d, x, s, ac)                        \
     {                                                   \
@@ -60,17 +60,17 @@ static unsigned char PADDING[64] = {0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     }
 
 static void store_le32(uint8_t *output, uint32_t value) {
-    output[0] = value & 0xFF; // least significant byte
-    output[1] = (value >> 8) & 0xFF;
-    output[2] = (value >> 16) & 0xFF;
-    output[3] = (value >> 24) & 0xFF; // most significant byte
+    output[0] = value & 0xFFU; // least significant byte
+    output[1] = (value >> 8U) & 0xFFU;
+    output[2] = (value >> 16U) & 0xFFU;
+    output[3] = (value >> 24U) & 0xFFU; // most significant byte
 }
 
 static uint32_t load_le32(const uint8_t *p) {
     return ((uint32_t)p[0]) |
-           ((uint32_t)p[1] << 8) |
-           ((uint32_t)p[2] << 16) |
-           ((uint32_t)p[3] << 24);
+           ((uint32_t)p[1] << 8U) |
+           ((uint32_t)p[2] << 16U) |
+           ((uint32_t)p[3] << 24U);
 }
 
 static void md5_transform(mc_md5_ctx *ctx, const uint8_t *input) {
@@ -167,13 +167,13 @@ void mc_md5_init(mc_md5_ctx *ctx) {
 
 int mc_md5_update(mc_md5_ctx *ctx, const uint8_t *input, uint32_t size) {
     uint32_t i, index, pad;
-    index = (ctx->count[0] >> 3) & 0x3F;
+    index = (ctx->count[0] >> 3U) & 0x3FU;
 
-    uint32_t added = size << 3;
+    uint32_t added = size << 3U;
     ctx->count[0] += added;
     if (ctx->count[0] < added)
         ctx->count[1]++;
-    ctx->count[1] += size >> 29;
+    ctx->count[1] += size >> 29U;
     pad = 64 - index;
     if (size >= pad) {
         mc_memcpy(&ctx->buffer[index], input, pad);
@@ -199,7 +199,7 @@ int mc_md5_final(mc_md5_ctx *ctx, uint8_t *out) {
     uint32_t index, pad;
     store_le32(&bits[0], ctx->count[0]);
     store_le32(&bits[4], ctx->count[1]);
-    index = (uint32_t)((ctx->count[0] >> 3) & 0x3f);
+    index = (uint32_t)((ctx->count[0] >> 3U) & 0x3fU);
     pad = (index < 56) ? (56 - index) : (120 - index);
     mc_md5_update(ctx, PADDING, pad);
     mc_md5_update(ctx, bits, 8);
@@ -213,8 +213,7 @@ int mc_md5_final(mc_md5_ctx *ctx, uint8_t *out) {
 int mc_md5_digest(const void *data, size_t size, uint8_t *out, const uint8_t *salt) {
     mc_md5_ctx ctx;
     mc_md5_init(&ctx);
-    if (salt != NULL)
-        mc_md5_update(&ctx, salt, 16);
+    if (salt != NULL) mc_md5_update(&ctx, salt, 16);
     mc_md5_update(&ctx, data, size);
     return mc_md5_final(&ctx, out);
 }

@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
+#include <local/scan.h>
 #include <cpr/system.h>
 #include <cpr/strchar.h>
 #include <getopt.h>
 
-static char *opt_quote = "";
-static char *opt_delim = " ";
+static char end_quote[2] = {0, 0};
+static char opt_quote[2] = {0, 0};
+static char opt_delim[2] = {' ', 0};
 static bool opt_escaped = false;
 static bool opt_recursive = false;
 static bool opt_directory = false;
@@ -27,8 +29,7 @@ static bool is_hidden(const char *path) {
     else
         cp = path;
 
-    if (*cp == '.')
-        return true;
+    if (*cp == '.') return true;
     return false;
 }
 
@@ -41,9 +42,7 @@ static void display(char *arg) {
 #endif
 
     cp = strrchr(arg, '/');
-    if (opt_basename && cp)
-        arg = ++cp;
-
+    if (opt_basename && cp) arg = ++cp;
     if (is_hidden(arg) && !opt_hidden) return;
     if (opt_escaped) {
         if (var_leadin)
@@ -85,10 +84,10 @@ static void display(char *arg) {
                 putchar(ch);
         }
     } else if (var_leadin && !opt_lines) {
-        printf("%s%s%s%s", opt_delim, opt_quote, arg, opt_quote);
+        printf("%s%s%s%s", opt_delim, opt_quote, arg, end_quote);
     } else {
         var_leadin = true;
-        printf("%s%s%s", opt_quote, arg, opt_quote);
+        printf("%s%s%s", opt_quote, arg, end_quote);
     }
     if (opt_lines)
         putchar('\n');
@@ -119,7 +118,7 @@ static void scan(const char *path) {
 
 int main(int argc, char *argv[]) {
     int opt;
-    while ((opt = getopt(argc, argv, "Rbdehlnq:s:")) != -1) { // FlawFinder: ignore
+    while ((opt = getopt(argc, argv, "Rbdehlnq:s:")) != -1) {
         switch (opt) {
         case 'R':
             opt_directory = true;
@@ -144,13 +143,39 @@ int main(int argc, char *argv[]) {
             opt_native = true;
             break;
         case 's':
-            opt_delim = optarg;
+            opt_delim[0] = scan_char(optarg);
+            if (!opt_delim[0]) {
+                fprintf(stderr, "%s: invalid delim: %s\n", argv[0], optarg);
+                goto usage;
+            }
             break;
         case 'q':
-            opt_quote = optarg;
+            opt_quote[0] = scan_quote(optarg);
+            if (!opt_quote[0]) {
+                fprintf(stderr, "%s: invalid quote: %s\n", argv[0], optarg);
+                goto usage;
+            }
+            switch (opt_quote[0]) {
+            case '(':
+                end_quote[0] = ')';
+                break;
+            case ';':
+                end_quote[0] = ']';
+                break;
+            case '{':
+                end_quote[0] = '}';
+                break;
+            case '<':
+                end_quote[0] = '>';
+                break;
+            default:
+                end_quote[0] = opt_quote[0];
+                break;
+            }
             break;
         default:
-            cpr_crit(-1, "Usage: plist [options] path...");
+        usage:
+            cpr_crit(-1, "usage: plist [options] path...");
         }
     }
     while (optind < argc) {
@@ -160,7 +185,6 @@ int main(int argc, char *argv[]) {
         else
             display(arg);
     }
-    if (var_newline)
-        printf("\n");
+    if (var_newline) printf("\n");
     return 0;
 }

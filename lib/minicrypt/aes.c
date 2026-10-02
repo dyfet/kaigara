@@ -5,7 +5,7 @@
 #include "random.h"
 #include "helper.h"
 
-#define PACK_BE32(p) ((uint32_t)(p)[0] << 24 | (p)[1] << 16 | (p)[2] << 8 | (p)[3])
+#define PACK_BE32(p) ((uint32_t)(p)[0] << 24U | (uint32_t)(p)[1] << 16U | (uint32_t)(p)[2] << 8U | (uint32_t)(p)[3])
 
 static const uint8_t rcon[10] = {
 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36};
@@ -79,14 +79,14 @@ static const uint8_t inv_sbox[256] = {
 0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D};
 
 static uint32_t rotl(uint32_t w) {
-    return (w << 8) | (w >> 24);
+    return (w << 8U) | (w >> 24U);
 }
 
 static uint32_t subword(uint32_t w) {
-    return (sbox[(w >> 24) & 0xFF] << 24) |
-           (sbox[(w >> 16) & 0xFF] << 16) |
-           (sbox[(w >> 8) & 0xFF] << 8) |
-           (sbox[w & 0xFF]);
+    return (uint32_t)(sbox[(w >> 24U) & 0xFFUL] << 24U) |
+           (uint32_t)(sbox[(w >> 16U) & 0xFFUL] << 16U) |
+           (uint32_t)(sbox[(w >> 8U) & 0xFFUL] << 8U) |
+           (uint32_t)(sbox[w & 0xFFUL]);
 }
 
 static void sub_bytes(uint8_t state[16]) {
@@ -122,10 +122,10 @@ static void shift_rows(uint8_t state[16]) {
 static void add_round_key(uint8_t state[16], const uint32_t *round_key) {
     for (int i = 0; i < 4; ++i) {
         uint32_t rk = round_key[i];
-        state[4 * i + 0] ^= (rk >> 24) & 0xFF;
-        state[4 * i + 1] ^= (rk >> 16) & 0xFF;
-        state[4 * i + 2] ^= (rk >> 8) & 0xFF;
-        state[4 * i + 3] ^= rk & 0xFF;
+        state[4 * i + 0] ^= (rk >> 24U) & 0xFFU;
+        state[4 * i + 1] ^= (rk >> 16U) & 0xFFU;
+        state[4 * i + 2] ^= (rk >> 8U) & 0xFFU;
+        state[4 * i + 3] ^= rk & 0xFFU;
     }
 }
 
@@ -160,14 +160,14 @@ static void inv_sub_bytes(uint8_t state[16]) {
         state[i] = inv_sbox[state[i]];
 }
 
-static uint8_t xtime(uint8_t x) {
-    return (x << 1) ^ ((x >> 7) * 0x1B);
+static uint32_t xtime(uint8_t x) {
+    return (uint32_t)(x << 1U) ^ ((x >> 7U) * 0x1BUL);
 }
 
 static void mix_columns(uint8_t state[16]) {
     for (size_t i = 0; i < 4; ++i) {
         uint8_t *col = &state[i * 4];
-        uint8_t a = col[0], b = col[1], c = col[2], d = col[3];
+        uint32_t a = col[0], b = col[1], c = col[2], d = col[3];
         col[0] = xtime(a) ^ xtime(b) ^ b ^ c ^ d;
         col[1] = a ^ xtime(b) ^ xtime(c) ^ c ^ d;
         col[2] = a ^ b ^ xtime(c) ^ xtime(d) ^ d;
@@ -175,10 +175,10 @@ static void mix_columns(uint8_t state[16]) {
     }
 }
 
-static uint8_t mul(uint8_t x, uint8_t y) {
+static uint32_t mul(uint32_t x, uint32_t y) {
     uint8_t r = 0;
-    for (; y; y >>= 1) {
-        if (y & 1) r ^= x;
+    for (; y; y >>= 1U) {
+        if (y & 1U) r ^= x;
         x = xtime(x);
     }
     return r;
@@ -233,7 +233,7 @@ bool mc_aes_setup(mc_aes_ctx *ctx, uint8_t *key, mc_aes_keysize_t size, const ui
     for (i = Nk; i < (4 * (Nr + 1)); ++i) {
         uint32_t temp = ctx->keyrounds[i - 1];
         if (i % Nk == 0) {
-            temp = subword(rotl(temp)) ^ (rcon[(i / Nk) - 1] << 24);
+            temp = subword(rotl(temp)) ^ (uint32_t)(rcon[(i / Nk) - 1U] << 24U);
         } else if (Nk > 6 && i % Nk == 4) {
             temp = subword(temp);
         }
@@ -243,8 +243,7 @@ bool mc_aes_setup(mc_aes_ctx *ctx, uint8_t *key, mc_aes_keysize_t size, const ui
 }
 
 void mc_aes_clear(mc_aes_ctx *ctx) {
-    if (ctx)
-        memset(ctx, 0, sizeof(mc_aes_ctx));
+    if (ctx) memset(ctx, 0, sizeof(mc_aes_ctx));
 }
 
 void mc_aes_encrypt(const mc_aes_ctx *ctx, const uint8_t *in, uint8_t *out) {
