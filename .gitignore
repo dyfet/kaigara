@@ -78,6 +78,8 @@ src/mkuuid
 src/fnlist
 src/mkpath
 src/rmpath
+src/mksparse
+src/dupsparse
 src/md5-digest
 src/sha1-digest
 src/sha2-digest

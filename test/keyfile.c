@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: BSD-3-Clause
 // Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 #undef NDEBUG
@@ -20,4 +20,5 @@ int main() {
     assert(eq(get_keyvalue(section, "secret"), "none"));
     assert(NULL == get_keyvalue(section, "XXX"));
     free(root);
+    return 0;
 }

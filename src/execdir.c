@@ -1,10 +1,10 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: BSD-3-Clause
 // Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 #include <local/shell.h>
 #include <cpr/system.h>
 #include <cpr/strchar.h>
-#include <cpr/proc.h>
+#include <cpr/process.h>
 #include <defines.h>
 #include <getopt.h>
 #include <limits.h>

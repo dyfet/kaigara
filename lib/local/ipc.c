@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: BSD-3-Clause
 // Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 #include <string.h>
@@ -6,6 +6,10 @@
 #include <stdio.h>
 #include <ctype.h>
 #include "ipc.h"
+
+#if defined(__OpenBSD__)
+#define random() ((long)arc4random())
+#endif
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -96,7 +100,7 @@ bool ipc_client_call(const char *req, size_t len, char *res, size_t size, int ti
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
-#include <sys/poll.h>
+#include <poll.h>
 
 static int ipc = -1;
 static struct sockaddr_un server;

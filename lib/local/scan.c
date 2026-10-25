@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: BSD-3-Clause
 // Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 #include <cpr/strchar.h>
@@ -57,4 +57,48 @@ char scan_newline(const char *s) {
     if (iscntrl(*s)) return *s;
     if (isalpha(*s)) return (char)((uint8_t)(*s) & 0x1fU);
     return *s;
+}
+
+uint64_t scan_size(const char *s) {
+    if (!s) return bad_size;
+    char *cp = NULL;
+    uint64_t size = strtoull(s, &cp, 10);
+    if (!cp) return bad_size;
+    if (!*cp) return size;
+
+    switch (*(cp++)) {
+    case 'b':
+    case 'N':
+        break;
+    case 'k':
+    case 'K':
+        size *= 1024ULL;
+        break;
+    case 'm':
+    case 'M':
+        size *= 1024ULL * 1024ULL;
+        break;
+    case 'g':
+    case 'G':
+        size *= 1024ULL * 1024ULL * 1024ULL;
+        break;
+    default:
+        return bad_size;
+    }
+
+    if (*cp) return bad_value;
+    return (size_t)size;
+}
+
+unsigned scan_perms(const char *s) {
+    int perm = 0;
+    if (!s || !*s) return 0;
+    while (perm < 523 && *s) {
+        if (*s < '0' || *s > '8') return bad_perms;
+        perm *= 8;
+        perm += (*s - '0');
+        ++s;
+    }
+    if (*s || perm >= 512) return bad_perms;
+    return perm;
 }

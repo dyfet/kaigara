@@ -27,4 +27,5 @@ int main() {
 
     print_digest(hmac);
     assert(memcmp(hmac, expected, 32) == 0);
+    return 0;
 }

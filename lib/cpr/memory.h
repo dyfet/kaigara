@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: BSD-3-Clause
 // Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 #ifndef CPR_MEMORY_H
@@ -23,7 +23,7 @@ typedef struct _memshare {
     atomic_uint refcount;
 } *memshare_t;
 
-size_t cpr_hexload(uint8_t *out, const char *hex, size_t size);
+bool is_zeromem(const uint8_t *mem, size_t size);
 char *cpr_hexdup(const uint8_t *bin, size_t size);
 void *cpr_new(void **ptr, size_t size);
 void cpr_free(void **ptr);
@@ -31,6 +31,7 @@ void *cpr_memset(void *ptr, int value, size_t size);
 memshare_t cpr_makeref(size_t size);
 bool cpr_memcpy(void *dst, size_t dst_size, const void *src, size_t src_size);
 void *cpr_ref(memshare_t ptr);
+size_t cpr_hexload(uint8_t *out, const char *hex, size_t size);
 unsigned cpr_count(memshare_t ptr);
 memshare_t cpr_retain(memshare_t ptr);
 memshare_t cpr_release(memshare_t ptr);

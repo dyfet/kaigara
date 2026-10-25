@@ -1,9 +1,17 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: BSD-3-Clause
 // Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 #include "memory.h"
 
 static const char *hex = "0123456789abcdef";
+
+bool is_zeromem(const uint8_t *mem, size_t size) {
+    if (!mem || size == 0) return true;
+    while (size--) {
+        if (mem[size]) return false;
+    }
+    return true;
+}
 
 size_t cpr_hexload(uint8_t *out, const char *str, size_t size) {
     if (!out || !size || !str) return 0;

@@ -43,4 +43,5 @@ int main() {
 
     print_digest(digest);
     assert(memcmp(digest, expected, 16) == 0);
+    return 0;
 }

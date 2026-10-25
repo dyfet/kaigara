@@ -29,4 +29,6 @@ int main() {
 
     print_digest(digest); // Optional: for visual confirmation
     assert(memcmp(digest, expected, MC_SHA1_DIGEST_SIZE) == 0);
+
+    return 0;
 }

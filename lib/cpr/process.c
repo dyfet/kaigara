@@ -1,7 +1,7 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: BSD-3-Clause
 // Copyright (C) 2026 David Sugar <tychosoft@gmail.com>
 
-#include "proc.h"
+#include "process.h"
 #include <string.h>
 
 #ifdef _WIN32
@@ -59,6 +59,7 @@ cpr_pid_t cpr_startpid(char *cmd, char **argv) {
     if (!cmdline) return INVALID_HANDLE_VALUE;
     BOOL ok = CreateProcessA(NULL, cmdline, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
     if (!ok) {
+        errno = cpr_syserror();
         free(cmdline);
         return INVALID_HANDLE_VALUE;
     }

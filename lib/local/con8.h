@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: BSD-3-Clause
 // Copyright (C) 202y David Sugar <tychosoft@gmail.com>
 
 #ifndef LOCAL_CON8_H
@@ -11,8 +11,11 @@ extern "C" {
 #include "utf8.h"
 #include "con.h"
 
+void utf8_map(bool enable);
 bool con8_utf8();
+bool con8_mapc(char code);
 bool con8_putc(ucs4_t code);
+size_t con8_maps(char *str, size_t cpmax);
 size_t con8_puts(utf8_t from, size_t cpmax);
 size_t con8_gets(int timeout, utf8_t out);
 ucs4_t con8_inkey(int timeout);

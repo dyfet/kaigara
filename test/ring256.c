@@ -24,4 +24,5 @@ int main() {
     assert(!mc_ring256_remove(&ctx, "nodeD"));
     assert(ctx.active <= 200);
     mc_ring256_free(&ctx);
+    return 0;
 }

@@ -1,5 +1,5 @@
 #!/bin/sh
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: BSD-3-Clause
 # Copyright (C) 2026 David Sugar <tychosoft@gmail.com>
 
 template() {
@@ -10,7 +10,9 @@ template() {
         -e "s/!!AUTHOR!!/$AUTHOR/g" \
         -e "s/!!EMAIL!!/$EMAIL/g" \
         -e "s/!!USER!!/$USER/g" \
-        -e "s/!!YEAR!!/$YEAR/g"
+        -e "s/!!YEAR!!/$YEAR/g" \
+        -e "s/!!NAME!!/$NAME/g" \
+        -e "s/!!HEADER!!/$HEADER/g" 
 }
 
 while [ $# -gt 0 ]; do
@@ -32,26 +34,63 @@ if [ "$#" -ne 1 ]; then
 fi
 
 target="$1"
+hdrext=""
 file=$(basename "$target")
+path=$(dirname "$target")
+path=$(realpath "$path")
+header="$file"
 if [ -f "$target" ] ; then echo "fatal: exists: ${1}" ; exit 1 ; fi
 case "$file" in
     *.c)
         source="code.c"
+        header=$(basename "$file" .c)
+        hdrext=".h"
+        case "$path" in 
+        */test|*/tests)
+            source="test.c"
+            ;;
+        esac
         ;;
     *.h)
         source="code.h"
+        header=$(basename "$file" .h)
+        hdrext=".h"
+        case "$path" in
+        */test|*/tests)
+            source="test.h"
+            ;;
+        esac
         ;;
     *.cpp|*.c++)
         source="code.cpp"
+        header=$(basename "$file" .cpp)
+        hdrext=".hpp"
+        case "$path" in
+        */test|*/tests)
+            source="test.cpp"
+            ;;
+        esac
         ;;
     *.hpp|*.h++)
         source="code.hpp"
+        header=$(basename "$file" .hpp)
+        hdrext=".hpp"
+        case "$path" in
+        */test|*/tests)
+            source="test.hpp"
+            ;;
+        esac
         ;;
     *.m)
         source="code.m"
         ;;
     *.go)
         source="code.go"
+        case "$file" in
+        *_test.go)
+            source="test.go"
+            ;;
+        esac
         ;;
     *.py)
         source="code.py"
@@ -95,6 +134,8 @@ case "$file" in
         ;;
 esac
 
+NAME=$(printf "%s" "$header" | tr '[:lower:]' '[:upper:]')
+HEADER="$header$hdrext"
 GIT=$(execdir -q)
 if [ ! -z "$GIT" ]; then
     AUTHOR=$(git config --global user.name)

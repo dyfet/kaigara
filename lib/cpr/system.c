@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: BSD-3-Clause
 // Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 #include "system.h"
@@ -42,7 +42,8 @@ __attribute__((format(printf, 2, 3))) void cpr_debug(int level, const char *fmt,
 #endif
 
 #ifdef _WIN32
-bool cpr_mkdir(const char *path, int perms) {
+bool cpr_mkdir(const char *path, unsigned perms) {
+    (void)perms;
     int err = mkdir(path);
     if (!err && perms) err = chmod(path, perms);
     return err == 0;
@@ -50,13 +51,19 @@ bool cpr_mkdir(const char *path, int perms) {
 
 int64_t cpr_freespc(const char *path) {
     ULARGE_INTEGER avail;
-    if (!GetDiskFreeSpaceExA(path, &avail, NULL, NULL)) return -1;
+    if (!GetDiskFreeSpaceExA(path, &avail, NULL, NULL)) {
+        errno = cpr_syserror();
+        return -1;
+    }
     return (int64_t)avail.QuadPart;
 }
 
 int64_t cpr_totalspc(const char *path) {
     ULARGE_INTEGER total;
-    if (!GetDiskFreeSpaceExA(path, NULL, &total, NULL)) return -1;
+    if (!GetDiskFreeSpaceExA(path, NULL, &total, NULL)) {
+        errno = cpr_syserror();
+        return -1;
+    }
     return (int64_t)total.QuadPart;
 }
 
@@ -72,26 +79,7 @@ bool cpr_symlink(const char *target, const char *linkpath) {
 
     flags |= SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE;
     if (CreateSymbolicLinkA(linkpath, target, flags)) return true;
-    DWORD error = GetLastError();
-    switch (error) {
-    case ERROR_ALREADY_EXISTS:
-    case ERROR_FILE_EXISTS:
-        errno = EEXIST;
-        break;
-    case ERROR_PATH_NOT_FOUND:
-    case ERROR_FILE_NOT_FOUND:
-        errno = ENOENT;
-        break;
-    case ERROR_PRIVILEGE_NOT_HELD:
-        errno = EPERM;
-        break;
-    case ERROR_ACCESS_DENIED:
-        errno = EACCES;
-        break;
-    default:
-        errno = EINVAL;
-        break;
-    }
+    errno = cpr_syserror();
     return false;
 }
 
@@ -101,8 +89,11 @@ bool cpr_symlink(const char *target, const char *linkpath) {
     return symlink(target, linkpath) == 0;
 }
 
-bool cpr_mkdir(const char *path, int perms) {
+bool cpr_mkdir(const char *path, unsigned perms) {
     if (!perms) perms = 0755;
+    if (perms & 0700U) perms |= 0100U;
+    if (perms & 070U) perms |= 010U;
+    if (perms & 07U) perms |= 01U;
     return mkdir(path, perms) == 0;
 }
 
@@ -121,11 +112,27 @@ int64_t cpr_totalspc(const char *path) {
 }
 #endif
 
+bool cpr_rmfile(const char *path) {
+    if (is_empty(path)) return false;
+    if (!is_exists(path)) return true;
+    return remove(path) == 0;
+}
+
 bool is_dir(const char *path) {
+    if (is_empty(path)) return false;
+
     struct stat ino;
     if (stat(path, &ino)) return false;
     if (S_ISDIR(ino.st_mode)) return true;
     return false;
+}
+
+bool is_exists(const char *path) {
+    if (is_empty(path)) return false;
+
+    struct stat ino;
+    if (stat(path, &ino)) return false;
+    return true;
 }
 
 bool is_file(const char *path) {
@@ -412,25 +419,71 @@ static int remove_all_w(const WCHAR *wpath) {
     return -1;
 }
 
+int cpr_syserror() {
+    DWORD error = GetLastError();
+    switch (error) {
+    case ERROR_ALREADY_EXISTS:
+    case ERROR_FILE_EXISTS:
+        return EEXIST;
+    case ERROR_PATH_NOT_FOUND:
+    case ERROR_FILE_NOT_FOUND:
+        return ENOENT;
+    case ERROR_DIRECTORY:
+        return ENOTDIR;
+    case ERROR_PRIVILEGE_NOT_HELD:
+        return EPERM;
+    case ERROR_ACCESS_DENIED:
+        return EACCES;
+    case ERROR_BAD_EXE_FORMAT:
+    case ERROR_EXE_MACHINE_TYPE_MISMATCH:
+        return ENOEXEC;
+    default:
+        return EINVAL;
+    }
+}
+
 bool cpr_rmdir(const char *path) {
     if (is_empty(path) || eq(path, "/") || eq(path, "\\")) return false;
+    if (!is_exists(path)) return true;
     if (!is_dir(path)) return false;
     int wlen = MultiByteToWideChar(CP_UTF8, 0, path, -1, NULL, 0);
     if (wlen <= 0) return false;
 
-    WCHAR *wpath = malloc(wlen * sizeof(WCHAR));
-    if (!wpath) return false;
-
+    WCHAR wpath[wlen * sizeof(WCHAR)];
     MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, wlen);
     int r = remove_all_w(wpath);
-    free(wpath);
+    if (r) errno = cpr_syserror();
     return r == 0;
+}
+
+bool cpr_strerror(int err, char *str, size_t size) {
+    if (!str || !size) return false;
+    snprintf(str, size, "[%d:--]", err);
+    return true;
 }
 
 #else
 
+bool cpr_strerror(int err, char *str, size_t size) {
+    if (!str || !size) return false;
+    int in = snprintf(str, size, "[%d:", err);
+    int rc = strerror_r(err, str + in, size - in);
+    if (rc) {
+        snprintf(str, size, "[%d:invalid error]", err);
+        return true;
+    }
+    if (size - strlen(str) > 1) snprintf(str + strlen(str), size - strlen(str), "]");
+    return true;
+    ;
+}
+
+int cpr_syserror() {
+    return errno;
+}
+
 bool cpr_rmdir(const char *path) {
     if (is_empty(path) || eq(path, "/")) return false;
+    if (!is_exists(path)) return true;
     if (!is_dir(path)) return false;
     struct stat st;
     if (lstat(path, &st) < 0) return false;
@@ -454,4 +507,18 @@ bool cpr_rmdir(const char *path) {
     return rmdir(path) == 0;
 }
 
+#endif
+
+#if defined(__OpenBSD__)
+static void (*_atexit)(void) = NULL;
+
+__attribute__((noreturn)) void quick_exit(int code) {
+    if (_atexit) _atexit();
+    _Exit(code);
+}
+
+int at_quick_exit(void (*ex)(void)) {
+    _atexit = ex;
+    return 0;
+}
 #endif

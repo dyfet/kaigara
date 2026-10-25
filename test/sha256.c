@@ -30,4 +30,5 @@ int main() {
 
     print_digest(digest);
     assert(memcmp(digest, expected, 32) == 0);
+    return 0;
 }

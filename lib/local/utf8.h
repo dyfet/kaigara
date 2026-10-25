@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: BSD-3-Clause
 // Copyright (C) 202y David Sugar <tychosoft@gmail.com>
 
 #ifndef LOCAL_UTF8_H

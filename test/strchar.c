@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: BSD-3-Clause
 // Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 #undef NDEBUG
@@ -18,4 +18,5 @@ int main() {
     char buf[16];
     assert(cpr_strlong(27, buf, sizeof(buf), 10) != NULL);
     assert(eq(buf, "27"));
+    return 0;
 };

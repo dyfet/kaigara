@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: BSD-3-Clause
 # Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 include(CheckCXXSourceCompiles)
@@ -37,14 +37,16 @@ add_compile_options(
     -fdata-sections
 )
 
-add_link_options(
-    -Wl,--no-whole-archive
-    -Wl,--gc-sections
-    -Wl,--gc-sections
-    -Wl,--as-needed
-    -Wl,--discard-all
-    -Wl,--no-undefined
-)
+if(NOT (CMAKE_SYSTEM_NAME STREQUAL "OpenBSD"))
+    add_link_options(
+        -Wl,--no-whole-archive
+        -Wl,--gc-sections
+        -Wl,--gc-sections
+        -Wl,--as-needed
+        -Wl,--discard-all
+        -Wl,--no-undefined
+    )
+endif()
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
     set(BUILD_DEBUG true)

@@ -1,7 +1,8 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: BSD-3-Clause
 // Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 #if __has_include(<termios.h>) && !defined(_WIN32)
+#include <cpr/system.h>
 #include <cpr/strchar.h>
 #include <string.h>
 #include <stdlib.h>

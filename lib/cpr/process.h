@@ -1,8 +1,8 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: BSD-3-Clause
 // Copyright (C) 2026 David Sugar <tychosoft@gmail.com>
 
-#ifndef CPR_PROC_H
-#define CPR_PROC_H
+#ifndef CPR_PROCESS_H
+#define CPR_PROCESS_H
 
 #include "system.h"
 

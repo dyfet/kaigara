@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: BSD-3-Clause
 // Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 #ifndef CPR_SYSTEM_H
@@ -77,13 +77,16 @@ __attribute__((noreturn)) __attribute__((format(printf, 2, 3))) void cpr_crit(in
 __attribute__((format(printf, 2, 3))) void cpr_debug(int level, const char *fmt, ...);
 #endif
 
-void cpr_error(int excode, const char *prefix);
-bool cpr_mkdir(const char *path, int perms);
-bool cpr_rmdir(const char *oath);
+int cpr_syserror();
 bool is_dir(const char *path);
 bool is_file(const char *path);
+bool is_exists(const char *path);
 bool is_abspath(const char *path);
 bool is_dirpath(const char *path);
+void cpr_error(int excode, const char *prefix);
+bool cpr_mkdir(const char *path, unsigned perms);
+bool cpr_rmdir(const char *oath);
+bool cpr_rmfile(const char *path);
 size_t scan_file(FILE *fp, size_t size, scan_file_t proc, void *data);
 size_t scan_dir(DIR *dir, scan_dir_t proc, void *data);
 void cpr_initfile(cpr_load_t *load);
@@ -96,6 +99,7 @@ bool cpr_basename(char *buf, size_t size, const char *path);
 bool cpr_fifopath(char *buf, size_t size, const char *name, bool make);
 bool cpr_localtime(const time_t *timep, struct tm *result);
 bool cpr_gmtime(const time_t *timep, struct tm *result);
+bool cpr_strerror(int err, char *str, size_t size);
 size_t cpr_fcopy(FILE *in, FILE *out, size_t bufsize);
 int64_t cpr_freespc(const char *path);
 int64_t cpr_totalspc(const char *path);
@@ -103,6 +107,11 @@ bool cpr_symlink(const char *target, const char *linkpath);
 
 #ifdef _WIN32
 ssize_t getline(char **lp, size_t *size, FILE *fp);
+#endif
+
+#if defined(__OpenBSD__)
+void quick_exit(int) __attribute__((noreturn));
+int at_quick_exit(void (*)(void));
 #endif
 
 #ifdef __cplusplus

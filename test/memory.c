@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: BSD-3-Clause
 // Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 #undef NDEBUG
@@ -9,6 +9,12 @@
 int main() {
     int *mem = NULL;
     memshare_t ints = NULL;
+
+    uint8_t mz[16];
+    cpr_memset(mz, 0, sizeof(mz));
+    assert(is_zeromem(mz, sizeof(mz)));
+    mz[15] = 0xfU;
+    assert(!is_zeromem(mz, sizeof(mz)));
 
     NEWP(mem, int);
     assert(mem != NULL);
@@ -24,4 +30,5 @@ int main() {
     assert(*REF(ints, int) == 7);
     RELEASE_REF(&ints);
     assert(ints == NULL);
+    return 0;
 }

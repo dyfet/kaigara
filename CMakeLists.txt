@@ -1,11 +1,11 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: BSD-3-Clause
 # Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 cmake_minimum_required(VERSION 3.16.0)
-Project(kaigara VERSION 0.3.0 LANGUAGES C)
+Project(kaigara VERSION 0.4.0 LANGUAGES C)
 set(CMAKE_C_STANDARD 17)
 set(C_STANDARD_REQUIRED 17)
-set(CMAKE_PROJECT_SPDX_LICENSE "GPL-3.0-or-later" CACHE STRING "SPDX license identifier" FORCE)
+set(CMAKE_PROJECT_SPDX_LICENSE "BSD-3-Clause" CACHE STRING "SPDX license identifier" FORCE)
 
 file(GLOB LINT_SCRIPTS RELATIVE ${PROJECT_SOURCE_DIR} scr/*.sh)
 file(

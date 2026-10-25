@@ -58,19 +58,16 @@ on a target platform.
 
 Kaigara Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
-This project collectively is licensed using the GNU GPL 3.0 or later. There may
-be some constituent parts under other licenses such as Apache 3.0, BSD. MIT, or
-a similar license. These are all GPU 3.0 compatible licenses and In a
-collective work these are promoted to and treated as GNU GPL 3.0.
+Starting with version 0.4.0, you can redistribute and/or modify this program
+under the permissive terms of the BSD 3 clause license. This program is
+distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 
-This program is free software: you can redistribute it and/or modify it
-effectively as a collective work under the terms of the GNU General Public
-License as published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU General Public License for more details.
+A number of external libraries are included and linked statically. I do this
+for libraries that have been well vetted and also publicly available under a
+permissive license like BSD or Apache 2.0. They often have been available
+stand-alone for years but have never been packaged. This package vendors libcpr
+and minicrypt.
 
 ## Testing
 
@@ -78,11 +75,4 @@ There are testing programs for testing various library functions. These run
 simple tests that will be expanded to improve code coverage over time. The test
 programs and the utilise may also be used as examples of how a given API
 works. There is a **lint** target that can be used to verify code changes.
-
-## Vendoring
-
-A number of external libraries are included and linked statically. I do this
-for libraries that have been well vetted and also publicly available as
-stand-alone builds for years but have never been packaged. This package vendors
-libcpr and minicrypt.
 

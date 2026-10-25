@@ -1,16 +1,9 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: BSD-3-Clause
 # Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 string(TOLOWER "${PROJECT_NAME}" PROJECT_ARCHIVE)
 include(GNUInstallDirs)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-if(CMAKE_BUILD_TYPE MATCHES "Debug")
-    set(BUILD_TESTING TRUE)
-    if(NOT MSVC)
-        list(APPEND CMAKE_CXX_FLAGS "-Wall")
-    endif()
-endif()
 
 if(RELEASE AND NOT PROJECT_RELEASE)
     set(PROJECT_RELEASE "${RELEASE}")

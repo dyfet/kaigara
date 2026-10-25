@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: BSD-3-Clause
 # Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 add_executable(plist plist.c)
@@ -6,6 +6,12 @@ target_link_libraries(plist PRIVATE local)
 
 add_executable(mkpath mkpath.c)
 target_link_libraries(mkpath PRIVATE local)
+
+add_executable(mksparse mksparse.c)
+target_link_libraries(mksparse PRIVATE local)
+
+add_executable(dupsparse dupsparse.c)
+target_link_libraries(dupsparse PRIVATE local)
 
 add_executable(fnlist fnlist.c)
 target_link_libraries(fnlist PRIVATE local)
@@ -109,6 +115,6 @@ if(NOT WIN32 AND NOT MSYS)
     install(TARGETS ttyprint ttyinput DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
-install(TARGETS mkpath ipcshell ipcfifo rmfifo isfifo codepage mkuuid istty execdir freespc inkey choose echoat keydata hostaddr detach attach finger plist fnlist md5-digest sha1-digest sha2-digest sha2-passwd rand ifaddr cls gopher hexver DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS mkpath dupsparse mksparse ipcshell ipcfifo rmfifo isfifo codepage mkuuid istty execdir freespc inkey choose echoat keydata hostaddr detach attach finger plist fnlist md5-digest sha1-digest sha2-digest sha2-passwd rand ifaddr cls gopher hexver DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 

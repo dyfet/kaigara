@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: BSD-3-Clause
 // Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 #include "thread.h"
@@ -153,3 +153,27 @@ void cpr_waitgroup_finish(cpr_waitgroup_t *wg) {
     cpr_waitgroup_wait(wg);
     cpr_waitgroup_free(wg);
 }
+
+#if defined(__OpenBSD__)
+
+int clock_nanosleep(clockid_t clock_id, int flags, const struct timespec *request, struct timespec *remain) {
+    if (flags & TIMER_ABSTIME) {
+        struct timespec now, rel;
+        if (clock_gettime(clock_id, &now) != 0) return errno;
+        rel.tv_sec = request->tv_sec - now.tv_sec;
+        rel.tv_nsec = request->tv_nsec - now.tv_nsec;
+        if (rel.tv_nsec < 0) {
+            rel.tv_sec--;
+            rel.tv_nsec += 1000000000L;
+        }
+
+        if (rel.tv_sec < 0 ||
+            (rel.tv_sec == 0 && rel.tv_nsec <= 0)) {
+            return 0;
+        }
+        return nanosleep(&rel, remain);
+    }
+    return nanosleep(request, remain);
+}
+
+#endif

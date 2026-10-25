@@ -1,10 +1,11 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: BSD-3-Clause
 // Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 #include "service.h"
 #include "strchar.h"
 #include "thread.h"
 #include "signal.h"
+#include <stdlib.h>
 #include <sys/stat.h>
 
 #ifdef _WIN32
