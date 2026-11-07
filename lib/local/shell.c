@@ -8,6 +8,7 @@
 
 #ifdef _WIN32
 bool dev_name(const char *from, char *buf, size_t size) {
+    if (!from || !buf || !size) return false;
     if (eq(from, "-")) return cpr_strcpy(buf, DEV_NULL, size) != NULL;
     if (strchr(from, '/')) return false;
     if (cpr_strcpy(buf, from, size) != NULL) return false;
@@ -18,14 +19,45 @@ bool dev_name(const char *from, char *buf, size_t size) {
     }
     return true;
 }
+
+bool lck_path(const char *from, char *buf, size_t size) {
+    if (!from || !buf || !size) return false;
+    if (eq(from, "-") || strchr(from, '/') || strchr(from, '\\')) return false;
+    snprintf(buf, size, "c:/temo/%s.lock", from);
+    return true;
+}
 #else
 bool dev_name(const char *from, char *buf, size_t size) {
+    if (!from || !buf || !size) return false;
     if (eq(from, "-")) return cpr_strcpy(buf, DEV_NULL, size) != NULL;
     if (eq_n(from, "/dev/", 5)) return cpr_strcpy(buf, from, size) != NULL;
     if (strchr(from, '/')) return false;
     if (cpr_strcpy(buf, "/dev/", size) == NULL) return false;
     return cpr_strcat(buf, from, size) != NULL;
 }
+
+bool lck_path(const char *from, char *buf, size_t size) {
+    if (!from || !buf || !size) return false;
+    if (eq(from, "-")) return false;
+    if (eq_n(from, "/dev/", 5)) {
+        from = strrchr(from, '/') + 1;
+        goto dev;
+    }
+    if (eq_n(from, "tty", 3)) goto dev;
+    if (strchr(from, '/')) return false;
+    if (is_dir("/var/lock"))
+        snprintf(buf, size, "/var/lock/%s.lock", from);
+    else
+        snprintf(buf, size, "/tmo/%s.lock", from);
+    return true;
+dev:
+    if (is_dir("/var/lock"))
+        snprintf(buf, size, "/var/lock/LCK..%s", from);
+    else
+        snprintf(buf, size, "/tmo/LCK..%s.lock", from);
+    return true;
+}
+
 #endif
 
 bool fix_path(char *path, bool dir) {
@@ -86,4 +118,18 @@ bool flag_one_only(unsigned count, ...) {
     }
     va_end(args);
     return one;
+}
+
+bool flag_one_more(unsigned count, ...) {
+    bool one = false;
+    bool any = false;
+    va_list args;
+
+    va_start(args, count);
+    while (count--) {
+        bool opt = va_arg(args, int);
+        if (opt) any = true;
+    }
+    va_end(args);
+    return any;
 }

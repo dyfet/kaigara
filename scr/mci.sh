@@ -184,8 +184,13 @@ case "$target" in
         "$cmake" $config -DCMAKE_BUILD_TYPE=Profile .
         target="all"
         ;;
-
-    *)
+    skel|tmp)
+        if [ ! -f CMakeCache.txt ]; then
+            echo "fatal: not generated" >&2 ; fi
+        rm -rf tmp
+        exec "$cmake" --install . --prefix "tmp" 
+        ;;
+    -*)
         echo "fatal: unknown target: $target" >&2
         exit 1
         ;;

@@ -69,10 +69,35 @@ cpr_pid_t cpr_startpid(char *cmd, char **argv) {
     return pi.hProcess;
 }
 
+bool is_pid(cpr_pid_t pid) {
+    DWORD code;
+    return GetExitCodeProcess(pid, &code) && code == STILL_ACTIVE;
+}
+
+cpr_pid_t to_pid(long pid) {
+    return OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+}
+
+void cpr_closepid(cpr_pid_t pid) {
+    CloseHandle(pid);
+}
+
 #else
 
 #include <sys/wait.h>
 #include <signal.h>
+
+bool is_pid(cpr_pid_t pid) {
+    return kill(pid, 0) == 0;
+}
+
+cpr_pid_t to_pid(long pid) {
+    return (pid_t)pid;
+}
+
+void cpr_closepid(cpr_pid_t pid) {
+    (void)pid;
+}
 
 bool cpr_waitpid(cpr_pid_t pid, int *status) {
     *status = -1;

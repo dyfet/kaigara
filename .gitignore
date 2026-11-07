@@ -6,6 +6,7 @@ CMakeSettings.json
 CMakeUserPresets.json
 Testing/
 build/
+tmp/
 .vs/
 .mcirc
 .cmake
@@ -86,6 +87,10 @@ src/sha2-digest
 src/sha3-digest
 src/sha2-passwd
 src/sha2-cipher
+src/trylock
+src/trypath
+src/pidlock
+src/subroot
 
 scr/docker-prune
 scr/local-install

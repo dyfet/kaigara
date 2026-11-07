@@ -18,10 +18,13 @@ typedef int cpr_exit_t;
 extern "C" {
 #endif
 
+cpr_pid_t to_pid(long pid);
+bool is_pid(cpr_pid_t pid);
 bool cpr_spawn(char *cmd, char **argv, cpr_exit_t *status);
 bool cpr_waitpid(cpr_pid_t pid, cpr_exit_t *status);
 bool cpr_exec(char *cmd, char **argv);
 bool cpr_killpid(cpr_pid_t pid);
+void cpr_closepid(cpr_pid_t pid);
 cpr_pid_t cpr_startpid(char *cmd, char **argv);
 
 #ifdef __cplusplus

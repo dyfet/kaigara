@@ -13,6 +13,12 @@ target_link_libraries(mksparse PRIVATE local)
 add_executable(dupsparse dupsparse.c)
 target_link_libraries(dupsparse PRIVATE local)
 
+add_executable(trypath trypath.c)
+target_link_libraries(trypath PRIVATE local)
+
+add_executable(pidlock pidlock.c)
+target_link_libraries(pidlock PRIVATE local)
+
 add_executable(fnlist fnlist.c)
 target_link_libraries(fnlist PRIVATE local)
 
@@ -115,6 +121,6 @@ if(NOT WIN32 AND NOT MSYS)
     install(TARGETS ttyprint ttyinput DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
-install(TARGETS mkpath dupsparse mksparse ipcshell ipcfifo rmfifo isfifo codepage mkuuid istty execdir freespc inkey choose echoat keydata hostaddr detach attach finger plist fnlist md5-digest sha1-digest sha2-digest sha2-passwd rand ifaddr cls gopher hexver DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS mkpath dupsparse mksparse ipcshell ipcfifo rmfifo isfifo codepage mkuuid istty execdir freespc inkey choose echoat keydata hostaddr detach attach finger plist fnlist md5-digest sha1-digest sha2-digest sha2-passwd rand ifaddr cls gopher hexver trypath pidlock DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 

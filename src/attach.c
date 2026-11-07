@@ -2,6 +2,7 @@
 // Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 #include <local/shell.h>
+#include <local/pidlock.h>
 #include <cpr/system.h>
 #include <cpr/strchar.h>
 #include <cpr/memory.h>
@@ -22,14 +23,22 @@ int main(int argc, char *argv[]) {
     bool null = false;
     bool opt_err = false;
     bool opt_wait = false;
+    bool opt_try = false;
+    bool opt_lock = false;
     int opt;
-    while ((opt = getopt(argc, argv, "ew")) != -1) {
+    while ((opt = getopt(argc, argv, "ewlt")) != -1) {
         switch (opt) {
         case 'e':
             opt_err = true;
             break;
         case 'w':
             opt_wait = true;
+            break;
+        case 't':
+            opt_try = true;
+            break;
+        case 'l':
+            opt_lock = true;
             break;
         default:
         usage:
@@ -38,12 +47,22 @@ int main(int argc, char *argv[]) {
     }
 
     if (optind > (argc - 2)) goto usage;
+    if (!flag_one_none(2, opt_try, opt_lock))
+        cpr_crit(-1, "fatal: cannot mix: -t, -l");
+
     const char *dev = argv[optind++];
     char *cmd = argv[optind];
     char name[DEV_SIZE];
     if (eq(dev, "-")) null = true;
     if (!dev_name(dev, name, sizeof(name))) cpr_crit(-1, "fatal: invalid dev: %s", dev);
     dev = name;
+
+    char lpath[64];
+    pidlock_t lock = {0};
+    if (opt_lock || opt_try) {
+        if (!lck_path(dev, lpath, sizeof(lpath)))
+            cpr_crit(-1, "fatal: invalid path for lock: %s", dev);
+    }
 
 #ifdef _WIN32
     STARTUPINFO si;
@@ -62,6 +81,9 @@ int main(int argc, char *argv[]) {
         ++count;
     }
     *cp = 0;
+    if (opt_lock || opt_try) {
+        if (!pidlock_acquire(&lock, lpath, opt_lock)) cpr_crit(-1, "fatal: cannot lock: %s", dev);
+    }
 
     HANDLE handle = CreateFileA(dev, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (handle == INVALID_HANDLE_VALUE) cpr_crit(-1, "cannot open: %s", dev);
@@ -85,10 +107,25 @@ int main(int argc, char *argv[]) {
     CloseHandle(pi.hProcess);
     return status;
 #else
+    if (opt_lock || opt_try) {
+        if (!pidlock_acquire(&lock, lpath, opt_lock)) cpr_crit(-1, "fatal: cannot lock: %s", dev);
+    }
+
     int fd = open(dev, O_RDWR);
     if (fd <= 0) cpr_crit(-1, "cannot open: %s", dev);
     if (!null && !isatty(fd)) cpr_crit(-1, "not a tty: %s", dev);
     pid_t pid = fork();
+    if (opt_try || opt_lock) {
+        if (!pid) {
+            if (!opt_wait) {
+                pidlock_update(&lock, NULL);
+            } else {
+                pidlock_close(&lock);
+            }
+        } else {
+            sleep(1);
+        }
+    }
     if (pid < 0) cpr_crit(-1, "cannot fork");
 
     int status = 0;
@@ -115,7 +152,9 @@ int main(int argc, char *argv[]) {
     if (setpgid(0, getpid()) == -1) exit(-1);
 #endif
     if (getppid() != 1) {
-        if ((pid = fork()) < 0)
+        pid = fork();
+        if (opt_try || opt_lock) pidlock_update(&lock, NULL);
+        if (pid < 0)
             exit(-1);
         else if (pid > 0)
             exit(0);
@@ -126,6 +165,7 @@ exec:
         execv(cmd, &argv[optind]); // NOLINT
     else
         execvp(cmd, &argv[optind]); // NOLINT
+    if (opt_try || opt_lock) pidlock_release(&lock);
     exit(-1);
 #endif
     return 0;
