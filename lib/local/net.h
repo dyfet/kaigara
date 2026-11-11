@@ -48,5 +48,6 @@ bool net_getiface(const sockaddr_t *addr, char *buf, size_t size);
 size_t net_sendfd(int so, int fd, size_t count, size_t chunk);
 size_t net_recvfd(int so, int fd, size_t count, size_t chunk);
 __attribute__((format(printf, 3, 4))) int net_printf(int so, size_t size, const char *fmt, ...);
-
+size_t net_readall(int so, void *data, size_t len);
+size_t net_writeall(int so, void *data, size_t len);
 #endif

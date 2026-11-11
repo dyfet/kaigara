@@ -17,6 +17,9 @@ if(WIN32 OR MSYS)
 endif()
 
 add_library(local STATIC ${local_lib})
+if (OPENSSL_FOUND)
+target_link_libraries(local PUBLIC import_cpr OpenSSL::SSL OpenSSL::Crypto)
+else()
 target_link_libraries(local PUBLIC import_cpr)
-
+endif()
 

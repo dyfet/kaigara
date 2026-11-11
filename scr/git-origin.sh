@@ -4,12 +4,12 @@
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        -*) # unknown long option
+        -*)
             echo "fatal: unrecognized argument: ${1}.."  >&2
             exit 1
             ;;
         *)
-            break   # first non-option → stop parsing
+            break
             ;;
     esac
     shift

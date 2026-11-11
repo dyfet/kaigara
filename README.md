@@ -46,6 +46,11 @@ a C17 (or later) C compiler with threading support is being used. Kaigara can
 build and run on any POSIX compliant platform, including MingW32 and MSYS. Ninja
 build is recommended to optimize parallel builds.
 
+Kaigara will optionally build with and offer some system tools and utilities
+that make use of OpenSSL. OpenSSL is used for public facing services that have
+to communicate with existing internet users. Most secure work favor using
+wireguard for internally secured services.
+
 ## Distribution
 
 Distributions of this package are provided as detached source tarballs made

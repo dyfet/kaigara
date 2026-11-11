@@ -31,6 +31,11 @@ endif()
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
+find_package(OpenSSL QUIET)
+
+if (OPENSSL_FOUND)
+    add_compile_definitions(HAVE_OPENSSL="1")
+endif()
 
 add_compile_options(
     -ffunction-sections

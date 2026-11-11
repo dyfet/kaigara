@@ -39,10 +39,19 @@ int main(int argc, char *argv[]) {
                 first = false;
                 if (!tok) break;
                 if (!cpr_asprintf(&execpath, "%s%c%s", tok, PATH_SEP, arg)) break;
-                if (!is_file(execpath)) {
-                    free(execpath);
-                    execpath = NULL;
-                }
+#ifdef _WIN32
+                char extpath[strlen(execpath) + 5];
+                snprintf(extpath, sizeof(extpath), "%s.exe", execpath);
+                if (is_file(extpath)) break;
+                snprintf(extpath, sizeof(extpath), "%s.bat", execpath);
+                if (is_file(extpath)) break;
+                snprintf(extpath, sizeof(extpath), "%s.ps1", execpath);
+                if (is_file(extpath)) break;
+#else
+                if (is_file(execpath)) break;
+#endif
+                free(execpath);
+                execpath = NULL;
             }
             free(path);
         }

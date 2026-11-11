@@ -1,6 +1,16 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright (C) 2026 David Sugar <tychosoft@gmail.com>
 
+if(OPENSSL_FOUND)
+    configure_file(mkcert.sh mkcert)
+    file(CHMOD ${CMAKE_CURRENT_BINARY_DIR}/mkcert
+        PERMISSIONS OWNER_READ OWNER_EXECUTE
+                    GROUP_READ GROUP_EXECUTE
+                    WORLD_READ WORLD_EXECUTE)
+    install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/mkcert
+            DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()
+
 configure_file(new.sh new)
 file(CHMOD ${CMAKE_CURRENT_BINARY_DIR}/new
      PERMISSIONS OWNER_READ OWNER_EXECUTE

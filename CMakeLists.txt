@@ -2,7 +2,7 @@
 # Copyright (C) 2025 David Sugar <tychosoft@gmail.com>
 
 cmake_minimum_required(VERSION 3.16.0)
-Project(kaigara VERSION 0.4.1 LANGUAGES C)
+Project(kaigara VERSION 0.4.2 LANGUAGES C)
 set(CMAKE_C_STANDARD 17)
 set(C_STANDARD_REQUIRED 17)
 set(CMAKE_PROJECT_SPDX_LICENSE "BSD-3-Clause" CACHE STRING "SPDX license identifier" FORCE)

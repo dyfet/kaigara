@@ -12,6 +12,7 @@
 // Linting defines
 #ifndef PROJECT_VERSION
 #define PROJECT_VERSION "unknown"
+#define HAVE_OPENSSL=1
 #endif
 
 #if (TUNE_FAMILY_INET != AF_INET) && (TUNE_FAMILY_INET != AF_INET6)

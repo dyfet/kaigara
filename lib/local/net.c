@@ -426,6 +426,34 @@ int net_connect(const struct sockaddr *addr) {
     return so;
 }
 
+size_t net_readall(int so, void *data, size_t len) {
+    if (so < 0) return 0;
+
+    char *p = (char *)data;
+    size_t received = 0;
+    while (received < len) {
+        const ssize_t n = recv(so, p + received, len - received, 0);
+        if (len < 0) cpr_sockerror();
+        if (n <= 0) break;
+        received += (size_t)n;
+    }
+    return received;
+}
+
+size_t net_writeall(int so, void *data, size_t len) {
+    if (so < 0) return 0;
+
+    const char *p = (const char *)data;
+    size_t written = 0;
+    while (written < len) {
+        const ssize_t n = send(so, p + written, len - written, 0);
+        if (len < 0) cpr_sockerror();
+        if (n <= 0) break;
+        written += (size_t)n;
+    }
+    return written;
+}
+
 int net_readline(int so, char *buf, size_t size, int timeout) {
     size_t pos = 0;
     char *nl = NULL;
@@ -441,7 +469,6 @@ int net_readline(int so, char *buf, size_t size, int timeout) {
         nl = strchr(buf, '\n');
         size_t max = size;
         if (nl) max = nl - buf + 1;
-        ;
         len = recv(so, buf + pos, max - pos, 0);
         if (len < 0) return cpr_sockerror();
         if (len == 0) return ECONNRESET;
